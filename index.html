@@ -540,6 +540,21 @@
   }
   .btn-complete-order:hover{ background:rgba(124,148,115,0.24); }
 
+  /* ---------- Pending ticket: Update Payment action ---------- */
+  .pending-payment-row{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed #8b7f66;
+  }
+  .btn-update-payment{
+    width:100%;
+    background:rgba(211,162,76,0.16);
+    border-color:var(--amber);
+    color:#5a4413;
+    font-weight:600;
+  }
+  .btn-update-payment:hover{ background:rgba(211,162,76,0.28); }
+
   /* ---------- Completed ticket: collapsed summary row ---------- */
   .ticket-summary-row{
     grid-column:1/-1;
@@ -2026,8 +2041,63 @@
     <div id="ticket-detail-body"></div>
     <div class="pad-actions">
       <button type="button" class="btn-primary" id="ticket-detail-print-btn">Print</button>
+      <button type="button" class="icon-btn can-manage-kot" id="ticket-detail-reopen-btn">Reopen for Payment Update</button>
       <button type="button" class="btn-ghost" id="ticket-detail-close-btn">Close</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="payment-update-modal-overlay">
+  <div class="modal-card" id="payment-update-modal-card">
+    <h2>Update Payment</h2>
+    <div class="ticket-detail-grid" id="payment-update-readonly-info"></div>
+    <form id="payment-update-form" autocomplete="off">
+      <input type="hidden" id="pu-id">
+      <div class="field">
+        <label for="pu-customer">Customer Name</label>
+        <input type="text" id="pu-customer" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="pu-status">Payment Status</label>
+        <select id="pu-status">
+          <option value="Pending">Pending</option>
+          <option value="Paid">Paid</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pu-amount-received">Amount Received</label>
+        <div class="currency-field">
+          <span class="currency-prefix">₹</span>
+          <input type="number" id="pu-amount-received" min="0" step="0.01">
+        </div>
+      </div>
+      <div class="field">
+        <label for="pu-payment-mode">Payment Mode</label>
+        <select id="pu-payment-mode">
+          <option>Cash</option>
+          <option>Card</option>
+          <option>UPI</option>
+          <option>Online</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Balance Receivable <span class="optional-tag">(auto-calculated)</span></label>
+        <div class="currency-field">
+          <span class="currency-prefix">₹</span>
+          <input type="text" id="pu-balance" readonly>
+        </div>
+      </div>
+      <div class="field">
+        <label for="pu-remarks">Remarks / Notes <span class="optional-tag">(optional)</span></label>
+        <textarea id="pu-remarks" rows="2"></textarea>
+      </div>
+      <div class="modal-error" id="payment-update-error"></div>
+      <div class="pad-actions">
+        <button type="submit" class="btn-primary" id="payment-update-save-btn">Save</button>
+        <button type="button" class="btn-ghost" id="payment-update-cancel-btn">Cancel</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -2051,8 +2121,8 @@
   };
   var STAFF_USERS = {
     'Bonomoli': 'bonomoli123',
-    'Masum': 'masum456',
-    'Nargis': 'nargis321'
+    'Masum': 'masum222',
+    'Nargis': 'nargis333'
   };
   // Exposed for the order-form script block below (this file uses two
   // separate top-level IIFEs), so the Waiter dropdown always reflects the
@@ -2209,6 +2279,19 @@
     doc.addFont('IBMPlexMono-Regular.ttf', 'IBMPlexMono', 'normal');
     doc.addFileToVFS('IBMPlexMono-Bold.ttf', FONT_BOLD_B64);
     doc.addFont('IBMPlexMono-Bold.ttf', 'IBMPlexMono', 'bold');
+  }
+
+  // Short, still-collision-resistant IDs — a base36 millisecond timestamp
+  // (sortable, ~8 chars) plus a 2-char random suffix guards against two
+  // tickets saved in the same millisecond. Much shorter than a full
+  // date+time+ms string, which was wide enough to overflow a single line
+  // on an 80mm thermal printout (e.g. next to "Invoice No." on the Invoice
+  // header). Nothing else in the app parses these strings for their date
+  // component, so shortening the format is safe.
+  function genCompactId(prefix){
+    const ts = Date.now().toString(36).toUpperCase();
+    const suffix = Math.random().toString(36).slice(2, 4).toUpperCase();
+    return prefix + '-' + ts + '-' + suffix;
   }
 
   const STORAGE_KEY = 'bhli_orders_v1';
@@ -2376,11 +2459,7 @@
   }
 
   function genEditLogId(){
-    const d = new Date();
-    const pad = (n, len)=>String(n).padStart(len || 2, '0');
-    return 'EDT-' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '-' +
-      pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + pad(d.getMilliseconds(), 3) +
-      '-' + Math.random().toString(36).slice(2, 5);
+    return genCompactId('EDT');
   }
 
   // Compares the pre-edit snapshot to the just-saved order and produces a
@@ -2479,11 +2558,7 @@
   });
 
   function genPaymentId(){
-    const d = new Date();
-    const pad = (n, len)=>String(n).padStart(len || 2, '0');
-    return 'PMT-' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '-' +
-      pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + pad(d.getMilliseconds(), 3) +
-      '-' + Math.random().toString(36).slice(2, 5);
+    return genCompactId('PMT');
   }
 
   function currentDateValue(){
@@ -2605,6 +2680,35 @@
   }
 
   // ---------- Ticket PDF generation & sharing ----------
+  // Prints "Label        : Value" as a single, never-wrapped line — label
+  // bold, value normal, left-aligned. Labels are padded (monospace font, so
+  // simple character-count padding aligns cleanly) to a fixed column width
+  // so short labels visually line up while a longer one just sits closer to
+  // its colon, matching the KOT/Invoice header spec exactly. Used anywhere
+  // a value (KOT/Invoice number, date & time, etc.) must never break across
+  // two lines on the thermal slip.
+  function printLabelValueLine(doc, x, y, label, value, padWidth){
+    const paddedLabel = label.length < padWidth ? label + ' '.repeat(padWidth - label.length) : label;
+    doc.setFont('IBMPlexMono', 'bold');
+    doc.text(paddedLabel + ' : ', x, y);
+    const prefixWidth = doc.getTextWidth(paddedLabel + ' : ');
+    doc.setFont('IBMPlexMono', 'normal');
+    doc.text(String(value), x + prefixWidth, y);
+  }
+
+  // Automatic "PAID" / "PARTIALLY PAID" seal for fully/partially settled
+  // Invoices only — never drawn on Order Tickets or KOTs. Text-only stamp
+  // (no border), solid black, tilted for a realistic stamp look. x/y is the
+  // text's left-baseline anchor point (pre-rotation), so callers position
+  // it directly rather than this function picking a fixed spot.
+  function drawPaidStamp(doc, x, y, label){
+    const angle = -27;
+    const isPartial = label === 'PARTIALLY PAID';
+    doc.setFont('IBMPlexMono', 'bold');
+    doc.setFontSize(isPartial ? 10 : 13);
+    doc.text(label, x, y, { angle: angle });
+  }
+
   // Draws the full ticket layout onto the given doc and returns the final
   // y position (content bottom) — used both to measure the required page
   // height and to do the real render at that exact height.
@@ -2770,21 +2874,219 @@
     return y;
   }
 
+  // Once a ticket's status is Completed, the printable document switches
+  // from an "Order Ticket" to a proper "Invoice" — same 80mm thermal
+  // format, but with payment details and an invoice-style heading instead
+  // of kitchen/service framing. The Ticket Number carries over unchanged
+  // and doubles as the Invoice Number.
+  function drawInvoice(doc, order, pageWidth){
+    ensureTicketFont(doc);
+    const marginX = 6;
+    let y = 10;
+
+    // Payment Status = Paid → seal reads "PAID"; Paid but only partially
+    // collected (amountReceived < total, e.g. a manually-marked-Paid
+    // ticket with a write-off) → "PARTIALLY PAID" instead; Pending/
+    // Refunded/Cancelled → no seal at all. Order Ticket and KOT never call
+    // drawPaidStamp, so it only ever appears on the Invoice. Drawn near the
+    // footer (see below), not here in the header.
+    let paidStampLabel = null;
+    if(order.status === 'Completed'){
+      const totalForStamp = Number(order.amount || 0);
+      const receivedForStamp = order.amountReceived != null ? Number(order.amountReceived) : totalForStamp;
+      paidStampLabel = (totalForStamp > 0 && receivedForStamp < totalForStamp) ? 'PARTIALLY PAID' : 'PAID';
+    }
+
+    doc.setFont('IBMPlexMono', 'bold');
+    doc.setFontSize(10.5);
+    doc.text(RESTAURANT_NAME, pageWidth / 2, y, { align: 'center' });
+    y += 6;
+
+    doc.setFont('IBMPlexMono', 'bold');
+    doc.setFontSize(11);
+    doc.text('INVOICE', pageWidth / 2, y, { align: 'center' });
+    y += 4.5;
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 6;
+
+    // Smaller than the rest of the Invoice — this row set includes the
+    // longest values (Invoice No., Date & Time), so this size is chosen to
+    // comfortably fit a full "Payment Status : Refunded"-length line within
+    // the 80mm width without ever wrapping or running off the edge.
+    doc.setFontSize(9);
+    const paymentStatus = order.status === 'Completed' ? 'Paid'
+      : order.status === 'Refunded' ? 'Refunded'
+      : order.status === 'Cancelled' ? 'N/A'
+      : 'Pending';
+    const orderDate = new Date(order.date);
+    const dateTimeStr = orderDate.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) +
+      ' ' + orderDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+    const INV_LABEL_WIDTH = 14;
+    const invLine = (label, value) => {
+      printLabelValueLine(doc, marginX, y, label, value, INV_LABEL_WIDTH);
+      y += 4.8;
+    };
+
+    invLine('Invoice No.', order.id);
+    invLine('Date & Time', dateTimeStr);
+    invLine('Table No.', order.table || '-');
+    invLine('Waiter', order.waiter || '-');
+    invLine('Payment Mode', order.paymentMethod || 'Not recorded');
+    invLine('Payment Status', paymentStatus);
+    if(order.customer) invLine('Customer', order.customer);
+
+    y += 1;
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 5;
+
+    // Item table — identical layout/columns to the Order Ticket.
+    const colAmtX = pageWidth - marginX;
+    const colRateX = colAmtX - 20;
+    const colQtyX = colRateX - 13;
+    const nameColWidth = colQtyX - 9 - (marginX + 2);
+
+    doc.setFontSize(7.5);
+    doc.setFont('IBMPlexMono', 'bold');
+    doc.text('Item Name', marginX + 2, y);
+    doc.text('Qty', colQtyX, y, { align: 'right' });
+    doc.text('Rate', colRateX, y, { align: 'right' });
+    doc.text('Amount', colAmtX, y, { align: 'right' });
+    y += 3.5;
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 3.8;
+
+    doc.setFont('IBMPlexMono', 'normal');
+    doc.setFontSize(8);
+    const itemsList = getItemsList(order);
+    itemsList.forEach(it => {
+      let name = it.name;
+      while(doc.getTextWidth(name) > nameColWidth && name.length > 1){
+        name = name.slice(0, -1);
+      }
+      if(name !== it.name) name = name.slice(0, -1) + '…';
+      doc.text(name, marginX + 2, y);
+      doc.text(String(it.qty), colQtyX, y, { align: 'right' });
+      doc.text(fmtMoney(Number(it.amount) || 0), colRateX, y, { align: 'right' });
+      doc.text(fmtMoney(lineTotal(it)), colAmtX, y, { align: 'right' });
+      y += 4.5;
+    });
+    y += 1;
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 5;
+
+    // Summary — Subtotal, GST, Grand Total, then Amount Received / Balance
+    // Receivable (real per-order figures when available from the Update
+    // Payment flow, falling back to a status-based estimate otherwise).
+    const subtotal = order.subtotal != null ? order.subtotal : (Number(order.amount||0) - (order.gst||0) - (order.parcelCharge||0) + (order.discount||0));
+    const gst = order.gst || 0;
+    const parcelCharge = order.parcelCharge || 0;
+    const discount = order.discount || 0;
+    const totalAmount = Number(order.amount || 0);
+    const amountReceived = order.amountReceived != null ? Number(order.amountReceived) : (order.status === 'Completed' ? totalAmount : 0);
+    const balanceReceivable = order.balanceReceivable != null ? Number(order.balanceReceivable) : Math.max(0, totalAmount - amountReceived);
+
+    doc.setFont('IBMPlexMono', 'normal');
+    doc.setFontSize(8.5);
+    doc.text('Subtotal:', marginX, y);
+    doc.text(fmtMoney(subtotal), pageWidth - marginX, y, { align: 'right' });
+    y += 4.5;
+    if(parcelCharge > 0){
+      doc.text('Parcel Charges:', marginX, y);
+      doc.text(fmtMoney(parcelCharge), pageWidth - marginX, y, { align: 'right' });
+      y += 4.5;
+    }
+    if(discount > 0){
+      doc.text('Discount:', marginX, y);
+      doc.text('-' + fmtMoney(discount), pageWidth - marginX, y, { align: 'right' });
+      y += 4.5;
+    }
+    doc.text('GST:', marginX, y);
+    doc.text(fmtMoney(gst), pageWidth - marginX, y, { align: 'right' });
+    y += 5.5;
+
+    const totalText = 'GRAND TOTAL: ' + fmtMoney(totalAmount);
+    doc.setFont('IBMPlexMono', 'bold');
+    doc.setFontSize(12.5);
+    const dims = doc.getTextDimensions(totalText);
+    const boxPadX = 5, boxPadY = 3;
+    const boxW = dims.w + boxPadX * 2;
+    const boxH = dims.h + boxPadY * 2;
+    const boxX = (pageWidth - boxW) / 2;
+    const boxY = y;
+    doc.setLineDashPattern([], 0);
+    doc.setDrawColor(0);
+    doc.roundedRect(boxX, boxY, boxW, boxH, 1, 1);
+    doc.text(totalText, pageWidth / 2, boxY + boxH / 2 + dims.h * 0.32, { align: 'center' });
+    y = boxY + boxH + 6;
+
+    doc.setFont('IBMPlexMono', 'normal');
+    doc.setFontSize(8.5);
+    doc.text('Amount Received:', marginX, y);
+    doc.text(fmtMoney(amountReceived), pageWidth - marginX, y, { align: 'right' });
+    y += 4.5;
+    doc.text('Balance Receivable:', marginX, y);
+    doc.text(fmtMoney(balanceReceivable), pageWidth - marginX, y, { align: 'right' });
+    y += 7;
+
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 6;
+
+    // PAID / PARTIALLY PAID seal — bottom-left, just above the thank-you
+    // line, tilted for a realistic stamp look. Text only (no border),
+    // solid black, sized to stay clearly visible without dominating the
+    // receipt.
+    if(paidStampLabel){
+      y += 3;
+      drawPaidStamp(doc, marginX + 1, y, paidStampLabel);
+      y += 6;
+    }
+
+    // Footer — thank-you message + "For Orders & Enquiries" contact block
+    // (shown only if RESTAURANT_CONTACT is configured below). No logo on
+    // the Invoice footer per spec.
+    doc.setFont('IBMPlexMono', 'bold');
+    doc.setFontSize(9.5);
+    doc.text('Thank You! Visit Again.', pageWidth / 2, y, { align: 'center' });
+    y += 6;
+
+    if(typeof RESTAURANT_CONTACT !== 'undefined' && RESTAURANT_CONTACT){
+      doc.setFont('IBMPlexMono', 'normal');
+      doc.setFontSize(8);
+      doc.text('For Orders & Enquiries', pageWidth / 2, y, { align: 'center' });
+      y += 4.5;
+      doc.setFont('IBMPlexMono', 'bold');
+      // "Tel:" instead of a phone emoji glyph — the embedded thermal-receipt
+      // font (and most actual 80mm thermal printers) can't render color
+      // emoji, so a plain text prefix is used to keep this line reliable.
+      doc.text('Tel: ' + RESTAURANT_CONTACT, pageWidth / 2, y, { align: 'center' });
+      y += 5;
+    }
+
+    return y;
+  }
+
   function buildTicketPDF(order){
     const { jsPDF } = window.jspdf;
     const pageWidth = 80;
+    const draw = order.status === 'Completed' ? drawInvoice : drawTicket;
 
     // Pass 1: render onto a generously tall scratch page purely to measure
-    // how much vertical space this ticket actually needs (item count and
+    // how much vertical space this document actually needs (item count and
     // text wrapping both affect this, so we can't just guess a formula).
     const scratch = new jsPDF({ unit: 'mm', format: [pageWidth, 2000] });
-    const contentBottom = drawTicket(scratch, order, pageWidth);
+    const contentBottom = draw(scratch, order, pageWidth);
     const finalHeight = contentBottom + 6;
 
     // Pass 2: render for real on a page sized to exactly fit the content —
     // a single continuous slip with no cut-off footer, however many items.
     const doc = new jsPDF({ unit: 'mm', format: [pageWidth, finalHeight] });
-    drawTicket(doc, order, pageWidth);
+    draw(doc, order, pageWidth);
 
     return doc;
   }
@@ -2820,6 +3122,10 @@
   // ---------- Kitchen Order Ticket (KOT) PDF ----------
   // Restaurant name for the KOT header — edit to match your outlet.
   const RESTAURANT_NAME = 'BHLI-TMOI RESTAURANT';
+  // Optional contact number shown in the "For Orders & Enquiries" block on
+  // Invoices only (KOTs deliberately omit it). Leave blank to omit that
+  // whole block from the Invoice footer.
+  const RESTAURANT_CONTACT = '+91 91874 54772';
 
   // Draws a kitchen-only ticket: item names + quantities, no pricing or
   // billing information at all. Always built from the order's CURRENT saved
@@ -2844,23 +3150,23 @@
     doc.line(marginX, y, pageWidth - marginX, y);
     y += 6;
 
-    // ---- Order info: KOT No / Order Date & Time / Table / Taken By ----
-    doc.setFontSize(10);
-    const line = (label, value) => {
-      doc.setFont('IBMPlexMono', 'bold');
-      doc.text(label, marginX, y);
-      doc.setFont('IBMPlexMono', 'normal');
-      const lines = doc.splitTextToSize(String(value), pageWidth - marginX * 2 - 34);
-      doc.text(lines, marginX + 34, y);
-      y += 5.2 * lines.length;
+    // ---- Order info: KOT No / Date & Time / Table No / Order Taken By ----
+    // Same size as the Invoice header rows — keeps "KOT No. : KOT-xxxxxxxx-xx"
+    // safely within the 80mm width even with a longer table/waiter name.
+    doc.setFontSize(9.5);
+    const KOT_LABEL_WIDTH = 14;
+    const kotLine = (label, value) => {
+      printLabelValueLine(doc, marginX, y, label, value, KOT_LABEL_WIDTH);
+      y += 5;
     };
 
     const orderDate = new Date(order.date);
-    const orderDateTime = orderDate.toLocaleDateString() + ' ' + orderDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    line('KOT No:', order.kotNumber || '-');
-    line('Date & Time:', orderDateTime);
-    line('Table Number:', order.table || '-');
-    line('Order Taken By:', order.waiter || '-');
+    const orderDateTime = orderDate.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) +
+      ' ' + orderDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    kotLine('KOT No.', order.kotNumber || '-');
+    kotLine('Date & Time', orderDateTime);
+    kotLine('Table No.', order.table || '-');
+    kotLine('Order Taken By', order.waiter || '-');
 
     y += 1;
     doc.setLineDashPattern([1, 1], 0);
@@ -2873,7 +3179,7 @@
     const nameColWidth = colQtyX - qtyColWidth - (marginX + 2);
 
     doc.setFont('IBMPlexMono', 'bold');
-    doc.setFontSize(9.5);
+    doc.setFontSize(10);
     doc.text('Item Name', marginX + 2, y);
     doc.text('Qty', colQtyX, y, { align: 'right' });
     y += 4;
@@ -2882,7 +3188,7 @@
     y += 5;
 
     doc.setFont('IBMPlexMono', 'normal');
-    doc.setFontSize(11);
+    doc.setFontSize(11.5);
     const itemsList = getItemsList(order);
     let totalQty = 0;
     itemsList.forEach(it => {
@@ -2892,7 +3198,7 @@
       doc.text(nameLines, marginX + 2, y);
       doc.text(String(it.qty), colQtyX, y, { align: 'right' });
       totalQty += Number(it.qty) || 0;
-      y += 5.6 * nameLines.length + 1;
+      y += 5.8 * nameLines.length + 1;
     });
 
     y += 0.5;
@@ -2901,10 +3207,18 @@
     y += 6;
 
     // ---- Footer: Total Qty + Kitchen Notes only ----
-    doc.setFontSize(10);
-    line('Total Qty:', totalQty);
+    doc.setFontSize(11);
+    kotLine('Total Qty', totalQty);
     if(order.remarks){
-      line('Kitchen Notes:', order.remarks);
+      // Kitchen notes are genuinely variable-length free text, so — unlike
+      // the fixed header fields above — this one is allowed to wrap.
+      doc.setFont('IBMPlexMono', 'bold');
+      doc.text('Kitchen Notes', marginX, y);
+      y += 5;
+      doc.setFont('IBMPlexMono', 'normal');
+      const noteLines = doc.splitTextToSize(String(order.remarks), pageWidth - marginX * 2);
+      doc.text(noteLines, marginX, y);
+      y += 5 * noteLines.length;
     }
     y += 2;
 
@@ -2924,13 +3238,7 @@
 
 
   function genId(){
-    const d = new Date();
-    const pad = (n, len)=>String(n).padStart(len || 2, '0');
-    // Millisecond + short random suffix avoids collisions when two tickets
-    // are saved in the same second (busy front desk, near-simultaneous taps).
-    return 'ORD-' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '-' +
-      pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + pad(d.getMilliseconds(), 3) +
-      '-' + Math.random().toString(36).slice(2, 5);
+    return genCompactId('ORD');
   }
 
   function fmtMoney(n){
@@ -2946,11 +3254,7 @@
   // ---------- Render ----------
   // ---------- KOT (Kitchen Order Ticket) helpers ----------
   function genKOTId(){
-    const d = new Date();
-    const pad = (n, len)=>String(n).padStart(len || 2, '0');
-    return 'KOT-' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '-' +
-      pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + pad(d.getMilliseconds(), 3) +
-      '-' + Math.random().toString(36).slice(2, 5);
+    return genCompactId('KOT');
   }
 
   // Builds the markup for the "Generate KOT" button (not yet generated) or
@@ -2992,6 +3296,20 @@
       <div class="order-actions-row">
         <button type="button" class="icon-btn" data-edit="${o.id}">Edit</button>
         <button type="button" class="icon-btn btn-complete-order" data-complete-order="${o.id}">Complete Order</button>
+      </div>`;
+  }
+
+  // Update Payment action — only for tickets still in "Pending" status.
+  // Staff can only ever reach this for their own tickets (the rail itself
+  // is already scoped per findVisibleOrder/visibleOrdersForRole); Admin and
+  // Manager see it on every pending ticket. Once a ticket is marked Paid it
+  // collapses to a summary row and this button disappears — Admin/Manager
+  // can bring it back via "Reopen for Payment Update" in the ticket popup.
+  function pendingPaymentSectionHtml(o){
+    if(o.status !== 'Pending') return '';
+    return `
+      <div class="pending-payment-row">
+        <button type="button" class="icon-btn btn-update-payment" data-update-payment="${o.id}">Update Payment</button>
       </div>`;
   }
 
@@ -3105,6 +3423,7 @@
             <div class="total">${o.amountINR || fmtMoney(o.amount)}</div>
             <div style="margin-top:6px;"><span class="badge ${statusClass}">${o.status}</span>${o.waiter ? ` <span class="meta" style="display:inline;">Waiter: ${escapeHtml(o.waiter)}</span>` : ''}${o.chef ? ` <span class="meta" style="display:inline;">Chef: ${escapeHtml(o.chef)}</span>` : ''}</div>
             ${orderActionsHtml(o)}
+            ${pendingPaymentSectionHtml(o)}
             ${kotSectionHtml(o)}
             <div class="ticket-actions">
               <button type="button" class="icon-btn" data-share="${o.id}">Share PDF</button>
@@ -3613,6 +3932,18 @@
       return;
     }
 
+    const updatePaymentId = e.target.getAttribute('data-update-payment');
+    if(updatePaymentId){
+      const o = findVisibleOrder(updatePaymentId);
+      if(!o) return;
+      if(o.status !== 'Pending'){
+        alert('This ticket is no longer Pending.');
+        return;
+      }
+      if(window.openPaymentUpdateModal) window.openPaymentUpdateModal(o);
+      return;
+    }
+
     const generateKotId = e.target.getAttribute('data-generate-kot');
     if(generateKotId){
       const o = findVisibleOrder(generateKotId);
@@ -4037,6 +4368,7 @@
     const bodyEl = $('#ticket-detail-body');
     const closeBtn = $('#ticket-detail-close-btn');
     const printBtn = $('#ticket-detail-print-btn');
+    const reopenBtn = $('#ticket-detail-reopen-btn');
     if(!overlay || !bodyEl) return;
 
     let currentOrder = null;
@@ -4062,6 +4394,7 @@
         : '<tr><td colspan="4">No items recorded</td></tr>';
 
       const subtotal = order.subtotal != null ? order.subtotal : (Number(order.amount||0) - (order.gst||0) - (order.parcelCharge||0) + (order.discount||0));
+      const hasPaymentInfo = order.amountReceived != null || order.lastUpdatedBy;
 
       bodyEl.innerHTML = `
         <div class="ticket-detail-grid">
@@ -4073,6 +4406,12 @@
           <div class="td-row"><span>Order Status</span><span>${escapeHtml(order.status)}</span></div>
           <div class="td-row"><span>Payment Method</span><span>${escapeHtml(order.paymentMethod || 'Not recorded')}</span></div>
           <div class="td-row"><span>Staff Name</span><span>${escapeHtml(order.waiter || '—')}</span></div>
+          ${hasPaymentInfo ? `
+          <div class="td-row"><span>Amount Received</span><span>${fmtMoney(order.amountReceived || 0)}</span></div>
+          <div class="td-row"><span>Balance Receivable</span><span>${fmtMoney(order.balanceReceivable || 0)}</span></div>
+          ` : ''}
+          ${order.lastUpdatedBy ? `<div class="td-row"><span>Last Updated By</span><span>${escapeHtml(order.lastUpdatedBy)}</span></div>
+          <div class="td-row"><span>Last Updated</span><span>${fmtDateTime(order.lastUpdatedAt)}</span></div>` : ''}
           <div class="td-row full"><span>Remarks</span><span>${escapeHtml(order.remarks || '—')}</span></div>
         </div>
         <table class="ticket-detail-items">
@@ -4110,6 +4449,184 @@
       }catch(err){
         alert('Print failed: ' + err.message);
       }
+    });
+
+    // Admin/Manager only (can-manage-kot already carries that visibility
+    // rule) — reopens a Paid/Completed ticket back to Pending so its
+    // payment details can be corrected via Update Payment again.
+    if(reopenBtn){
+      reopenBtn.addEventListener('click', function(){
+        const isAdminForReopen = document.body.classList.contains('role-admin');
+        const isManagerForReopen = document.body.classList.contains('role-manager');
+        if(!isAdminForReopen && !isManagerForReopen){
+          alert('Only Admin or Manager can reopen a ticket.');
+          return;
+        }
+        if(!currentOrder) return;
+        if(!confirm('Reopen ticket ' + currentOrder.id + ' for a payment update? Its status will change back to Pending.')) return;
+        currentOrder.status = 'Pending';
+        currentOrder.lastUpdatedBy = currentSessionUser();
+        currentOrder.lastUpdatedAt = new Date().toISOString();
+        logOrderEdit(currentOrder, 'Reopened from Paid/Completed back to Pending for a payment correction.');
+        scheduleSave();
+        closeModal();
+        render();
+      });
+    }
+  })();
+
+  // ============================================================
+  //  UPDATE PAYMENT (Pending tickets only)
+  // ============================================================
+  // A deliberately narrow edit surface: Payment Status, Amount Received,
+  // Payment Mode, Customer Name, and Remarks only. Ticket Number, Order
+  // Date & Time, KOT Number, Waiter, Table Number, and Items/Total are all
+  // shown read-only for context and are never editable here.
+  (function(){
+    const overlay = $('#payment-update-modal-overlay');
+    const readonlyInfo = $('#payment-update-readonly-info');
+    const form = $('#payment-update-form');
+    const idField = $('#pu-id');
+    const customerField = $('#pu-customer');
+    const statusField = $('#pu-status');
+    const amountField = $('#pu-amount-received');
+    const modeField = $('#pu-payment-mode');
+    const balanceField = $('#pu-balance');
+    const remarksField = $('#pu-remarks');
+    const errorEl = $('#payment-update-error');
+    const cancelBtn = $('#payment-update-cancel-btn');
+    if(!overlay || !form) return;
+
+    let editingOrderId = null;
+
+    function totalOf(order){
+      return Number(order.amount || 0);
+    }
+
+    function recalcBalance(order){
+      const total = totalOf(order);
+      const received = Math.max(0, Number(amountField.value) || 0);
+      const balance = Math.max(0, total - received);
+      balanceField.value = fmtMoney(balance);
+      // Full payment auto-flips status to Paid, per spec.
+      if(received >= total && total > 0){
+        statusField.value = 'Paid';
+      }
+      return balance;
+    }
+
+    function closeModal(){
+      overlay.classList.add('hidden');
+      editingOrderId = null;
+      errorEl.textContent = '';
+    }
+
+    function openModal(order){
+      editingOrderId = order.id;
+      errorEl.textContent = '';
+      idField.value = order.id;
+
+      readonlyInfo.innerHTML = `
+        <div class="td-row"><span>Ticket Number</span><span>${escapeHtml(order.id)}</span></div>
+        <div class="td-row"><span>Order Date &amp; Time</span><span>${new Date(order.date).toLocaleString()}</span></div>
+        <div class="td-row"><span>Table Number</span><span>${escapeHtml(order.table || '—')}</span></div>
+        <div class="td-row"><span>Order Taken By</span><span>${escapeHtml(order.waiter || '—')}</span></div>
+        <div class="td-row"><span>KOT Number</span><span>${escapeHtml(order.kotNumber || 'Not generated')}</span></div>
+        <div class="td-row"><span>Original Total Amount</span><span>${order.amountINR || fmtMoney(order.amount)}</span></div>
+      `;
+
+      customerField.value = order.customer || '';
+      statusField.value = order.status === 'Completed' ? 'Paid' : 'Pending';
+      amountField.value = order.amountReceived != null ? order.amountReceived : 0;
+      modeField.value = order.paymentMethod || 'Cash';
+      remarksField.value = order.remarks || '';
+      recalcBalance(order);
+
+      overlay.classList.remove('hidden');
+      customerField.focus();
+    }
+
+    window.openPaymentUpdateModal = openModal;
+
+    amountField.addEventListener('input', function(){
+      const o = findVisibleOrder(editingOrderId);
+      if(o) recalcBalance(o);
+    });
+
+    statusField.addEventListener('change', function(){
+      const o = findVisibleOrder(editingOrderId);
+      if(!o) return;
+      // Marking Paid manually is treated as "fully settled" — top up the
+      // amount to the full total unless something higher was already typed.
+      if(statusField.value === 'Paid'){
+        const total = totalOf(o);
+        if((Number(amountField.value) || 0) < total){
+          amountField.value = total;
+        }
+      }
+      recalcBalance(o);
+    });
+
+    cancelBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay) closeModal();
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal();
+    });
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const o = findVisibleOrder(editingOrderId);
+      if(!o){
+        errorEl.textContent = 'This ticket is no longer available.';
+        return;
+      }
+      if(o.status !== 'Pending'){
+        errorEl.textContent = 'This ticket is no longer Pending — it may have already been updated elsewhere.';
+        return;
+      }
+
+      const total = totalOf(o);
+      const received = Number(amountField.value);
+      if(isNaN(received) || received < 0){
+        errorEl.textContent = 'Enter a valid Amount Received (0 or more).';
+        return;
+      }
+
+      const before = {
+        status: o.status,
+        amountReceived: o.amountReceived || 0,
+        paymentMethod: o.paymentMethod || '',
+        customer: o.customer
+      };
+
+      let balance = Math.max(0, total - received);
+      let newStatus = statusField.value === 'Paid' ? 'Completed' : 'Pending';
+      if(received >= total && total > 0){
+        newStatus = 'Completed';
+        balance = 0;
+      }
+
+      o.customer = customerField.value.trim() || o.customer;
+      o.remarks = remarksField.value.trim();
+      o.paymentMethod = modeField.value;
+      o.amountReceived = received;
+      o.balanceReceivable = balance;
+      o.status = newStatus;
+      o.lastUpdatedBy = currentSessionUser();
+      o.lastUpdatedAt = new Date().toISOString();
+
+      const changeParts = [];
+      if(before.status !== o.status) changeParts.push('Payment Status: ' + (before.status === 'Completed' ? 'Paid' : before.status) + ' → ' + (o.status === 'Completed' ? 'Paid' : o.status));
+      if(before.amountReceived !== received) changeParts.push('Amount Received: ' + fmtMoney(before.amountReceived) + ' → ' + fmtMoney(received));
+      if(before.paymentMethod !== o.paymentMethod) changeParts.push('Payment Mode: ' + (before.paymentMethod || '—') + ' → ' + o.paymentMethod);
+      if(before.customer !== o.customer) changeParts.push('Customer: ' + before.customer + ' → ' + o.customer);
+      logOrderEdit(o, changeParts.length ? changeParts.join('; ') : 'Payment details updated.');
+
+      scheduleSave();
+      render();
+      closeModal();
     });
   })();
 
@@ -4170,17 +4687,17 @@
     // Excel generator below is never touched), used to drive the on-screen
     // sortable/searchable table.
     //
-    // Amount Received / Balance Receivable: this app doesn't link individual
-    // bank payments (Payment Received module) to a specific booking, so
-    // "amount actually collected" is derived from the booking's own status —
-    // a Completed booking is treated as fully paid, anything else as not yet
-    // collected. Balance Receivable = Total Amount − Amount Received.
+    // Amount Received / Balance Receivable: uses the real per-order value
+    // recorded via Update Payment when present (Pending tickets now track
+    // this explicitly). Falls back to the old status-based estimate for
+    // orders that never went through that flow — a Completed booking is
+    // treated as fully paid, anything else as not yet collected.
     function mapOrderToReportRow(o){
       const subtotal = o.subtotal != null ? o.subtotal : (Number(o.amount || 0) - (o.gst || 0) - (o.parcelCharge || 0));
       const totalAmount = Number(o.amount || 0);
       const commissionAmt = totalAmount * 0.10;
       const netAmt = totalAmount - commissionAmt;
-      const amountReceived = o.status === 'Completed' ? totalAmount : 0;
+      const amountReceived = o.amountReceived != null ? Number(o.amountReceived) : (o.status === 'Completed' ? totalAmount : 0);
       const balanceReceivable = totalAmount - amountReceived;
       return {
         date: o.date,
@@ -4388,11 +4905,11 @@
           const totalAmount = Number(o.amount || 0);
           const commissionAmt = totalAmount * 0.10;
           const netAmt = totalAmount - commissionAmt;
-          // Amount Received / Balance Receivable: no per-booking payment link
-          // exists in this app (see Payment Received module, which records
-          // bank-level payments only), so a Completed booking is treated as
-          // fully collected and anything else as not yet collected.
-          const amountReceived = o.status === 'Completed' ? totalAmount : 0;
+          // Amount Received / Balance Receivable: uses the real per-order
+          // value recorded via Update Payment when present, falling back to
+          // the old status-based estimate for orders that never went
+          // through that flow (a Completed booking = fully collected).
+          const amountReceived = o.amountReceived != null ? Number(o.amountReceived) : (o.status === 'Completed' ? totalAmount : 0);
           const balanceReceivable = totalAmount - amountReceived;
           return {
             'Booking Date': new Date(o.date).toLocaleDateString(),
