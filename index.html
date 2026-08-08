@@ -246,8 +246,9 @@
   .item-row-header .h-amount{width:64px; flex:none; text-align:center;}
   .item-row-header .h-spacer{width:20px; flex:none;}
   .item-row{display:flex; align-items:center; gap:4px;}
+  .item-name-wrap{ position:relative; flex:1; min-width:0; }
   .item-row .item-name{
-    flex:1; min-width:0;
+    width:100%;
     background:transparent;
     border:none;
     border-bottom:1px dashed #8b7f66;
@@ -258,6 +259,40 @@
     outline:none;
   }
   .item-row .item-name:focus{border-bottom:1px solid var(--copper);}
+  .item-name-suggestions{
+    display:none;
+    position:absolute;
+    top:100%; left:0; right:0;
+    z-index:20;
+    background:#fdfcfa;
+    border:1px solid rgba(7,28,56,0.2);
+    border-radius:0 0 4px 4px;
+    max-height:170px;
+    overflow-y:auto;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+  }
+  .item-suggestion{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:7px 9px;
+    font-size:12.5px;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .item-suggestion:hover, .item-suggestion.active{ background:rgba(184,112,63,0.14); }
+  .item-suggestion-rate{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    color:var(--sage);
+    flex:none;
+  }
+  .item-name-empty{
+    padding:7px 9px;
+    font-size:11.5px;
+    color:#8b7f66;
+    font-style:italic;
+  }
   .item-row .item-qty{
     width:40px; flex:none; text-align:center;
     background:transparent;
@@ -404,6 +439,11 @@
     padding:9px 18px;
   }
   .btn-stamp:hover{background:rgba(214,148,99,0.12);}
+  .btn-stamp.danger{
+    border-color:var(--rust);
+    color:var(--rust);
+  }
+  .btn-stamp.danger:hover{ background:rgba(181,82,75,0.14); }
 
   /* ---------- Rail controls ---------- */
   .rail-toolbar{
@@ -960,6 +1000,50 @@
   .kpi-card.kpi-commission .kpi-val{ color:var(--rust); font-weight:700; }
   /* Net Revenue - black bold value */
   .kpi-card.kpi-net .kpi-val{ color:#111; font-weight:700; }
+  /* Total Revenue (Including GST) highlight — green, per Owner Dashboard spec */
+  .kpi-card.kpi-green{
+    background:#dcf5df;
+    border-color:rgba(58,140,74,0.45);
+  }
+  .kpi-card.kpi-green .kpi-lbl{ color:#1f5c2c; }
+  .kpi-card.kpi-green .kpi-val{ color:#1f7a34; font-weight:700; }
+  /* GST highlight — orange, per Owner Dashboard spec */
+  .kpi-card.kpi-orange{
+    background:#f7a94a;
+    border-color:rgba(181,82,75,0.35);
+  }
+  .kpi-card.kpi-orange .kpi-lbl{ color:#5a2f0e; }
+  .kpi-card.kpi-orange .kpi-val{ color:#5a2f0e; font-weight:700; }
+  /* Owner Profit / Loss — sign-dependent colour, set via JS */
+  .kpi-card.kpi-profit{ background:#dcf5df; border-color:rgba(58,140,74,0.45); }
+  .kpi-card.kpi-profit .kpi-lbl{ color:#1f5c2c; }
+  .kpi-card.kpi-profit .kpi-val{ color:#1f7a34; font-weight:700; }
+  .kpi-card.kpi-loss{ background:#fdeceb; border-color:rgba(181,82,75,0.4); }
+  .kpi-card.kpi-loss .kpi-lbl{ color:#7a2318; }
+  .kpi-card.kpi-loss .kpi-val{ color:var(--rust); font-weight:700; }
+  .kpi-card.kpi-neutral{ background:#fff8e1; border-color:rgba(211,162,76,0.45); }
+  .kpi-card.kpi-neutral .kpi-lbl{ color:#6b5a12; }
+  .kpi-card.kpi-neutral .kpi-val{ color:#8a6d1a; font-weight:700; }
+
+  /* ---------- Owner Dashboard: four-column financial layout ---------- */
+  .owner-financial-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px;
+    margin-bottom:18px;
+    align-items:start;
+  }
+  .owner-financial-grid .ofg-col{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  @media (max-width:980px){
+    .owner-financial-grid{ grid-template-columns:repeat(2, 1fr); }
+  }
+  @media (max-width:620px){
+    .owner-financial-grid{ grid-template-columns:1fr; }
+  }
   /* Pending Payments - overdue highlight */
   .kpi-card.kpi-pending.overdue{
     background:#fdeceb;
@@ -1239,6 +1323,9 @@
   /* ---------- Admin-only block visibility ---------- */
   .admin-only-block{ display:none !important; }
   body.role-admin .admin-only-block{ display:block !important; }
+  .admin-manager-only-block{ display:none !important; }
+  body.role-admin .admin-manager-only-block{ display:block !important; }
+  body.role-manager .admin-manager-only-block{ display:block !important; }
 
   /* ---------- Admin financial summary panel ---------- */
   .admin-fin-panel{
@@ -1311,6 +1398,30 @@
     border:1px solid rgba(7,28,56,0.25);
     border-radius:4px;
     background:#fdfcfa;
+  }
+  .item-list-mgmt-controls{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .item-list-mgmt-field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .item-list-mgmt-label{
+    font-family:'Oswald',sans-serif;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#5b5140;
+  }
+  .item-list-mgmt-hint{
+    font-size:11px;
+    color:#8b7f66;
+    margin-bottom:4px;
   }
   table.payment-history-table{
     width:100%;
@@ -1409,6 +1520,131 @@
     margin:2px 0 10px;
     min-height:1em;
   }
+
+  /* ---------- Reset / Data Management screen ---------- */
+  .reset-warning-intro{
+    font-size:12px;
+    color:#7a2318;
+    font-weight:600;
+    background:#fdeceb;
+    border:1px solid rgba(181,82,75,0.35);
+    border-radius:4px;
+    padding:9px 11px;
+    margin:-6px 0 16px;
+  }
+  .reset-data-checklist{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    margin-bottom:6px;
+    max-height:340px;
+    overflow-y:auto;
+    border:1px solid rgba(7,28,56,0.12);
+    border-radius:6px;
+    padding:6px 4px;
+  }
+  .reset-check-row{
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    font-size:13px;
+    color:var(--ink);
+    padding:7px 8px;
+    border-radius:4px;
+    cursor:pointer;
+  }
+  .reset-check-row:hover{ background:rgba(7,28,56,0.04); }
+  .reset-check-row input[type="checkbox"]{
+    margin-top:2px;
+    width:15px; height:15px;
+    accent-color:var(--rust);
+    flex:none;
+  }
+  .reset-check-row .optional-tag{
+    display:block;
+    font-size:10px;
+    margin-top:2px;
+    color:#8b7f66;
+  }
+  .reset-delete-btn{
+    background:var(--rust) !important;
+  }
+  .reset-delete-btn:hover{ background:#9c3f34 !important; }
+  .reset-data-success{
+    font-size:12.5px;
+    font-weight:600;
+    color:#1f5c2c;
+    background:#dcf5df;
+    border:1px solid rgba(58,140,74,0.4);
+    border-radius:4px;
+    padding:9px 11px;
+    margin:2px 0 10px;
+  }
+
+  /* ---------- Edit Item List modal ---------- */
+  .item-history-edited-sub{
+    font-size:10px;
+    color:#8b7f66;
+    font-style:italic;
+    margin-top:2px;
+  }
+  .item-edit-hint{
+    font-size:11.5px;
+    color:#8b7f66;
+    margin:-8px 0 12px;
+  }
+  .item-edit-table-wrap{
+    max-height:320px;
+    overflow-y:auto;
+    border:1px solid rgba(7,28,56,0.12);
+    border-radius:6px;
+    margin-bottom:8px;
+  }
+  table.item-edit-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+  }
+  table.item-edit-table th{
+    text-align:left;
+    font-family:'Oswald',sans-serif;
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:#8b7f66;
+    padding:7px 8px;
+    border-bottom:2px solid rgba(7,28,56,0.15);
+    position:sticky;
+    top:0;
+    background:#fdfcfa;
+  }
+  table.item-edit-table td{
+    padding:5px 8px;
+    border-bottom:1px dashed rgba(7,28,56,0.1);
+  }
+  table.item-edit-table td:nth-child(2){ width:110px; }
+  table.item-edit-table td:nth-child(3){ width:36px; text-align:center; }
+  table.item-edit-table .ie-name, table.item-edit-table .ie-rate{
+    width:100%;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    padding:5px 6px;
+    border:1px solid rgba(7,28,56,0.18);
+    border-radius:3px;
+    background:#fff;
+  }
+  table.item-edit-table .ie-remove{
+    background:transparent;
+    border:none;
+    color:var(--rust);
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    padding:2px 6px;
+  }
+  table.item-edit-table .ie-remove:hover{ background:rgba(181,82,75,0.12); border-radius:3px; }
 
   /* ---------- Ticket detail popup ---------- */
   .modal-card-wide{ max-width:520px; }
@@ -1528,49 +1764,73 @@
       </div>
     </div>
 
-    <div class="owner-row row-1">
-      <div class="kpi-card">
-        <div class="kpi-lbl">Total Bookings</div>
-        <div class="kpi-val" id="o-bookings">0</div>
+    <div class="owner-financial-grid">
+      <div class="ofg-col">
+        <div class="kpi-card">
+          <div class="kpi-lbl">Total Booking</div>
+          <div class="kpi-val" id="o4-bookings">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-lbl">Today's Revenue</div>
+          <div class="kpi-val" id="o4-today">₹0.00</div>
+        </div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-lbl">Today's Revenue</div>
-        <div class="kpi-val" id="o-today">₹0.00</div>
-      </div>
-      <div class="kpi-card kpi-premium">
-        <div class="kpi-lbl">Total Revenue (Including GST)</div>
-        <div class="kpi-val" id="o-revenue">₹0.00</div>
-      </div>
-      <div class="kpi-card kpi-received">
-        <div class="kpi-lbl">Amount Received</div>
-        <div class="kpi-val" id="o-received">₹0.00</div>
-      </div>
-    </div>
 
-    <div class="owner-row row-2">
-      <div class="kpi-card kpi-balance">
-        <div class="kpi-lbl">Balance Receivable</div>
-        <div class="kpi-val" id="o-balance">₹0.00</div>
+      <div class="ofg-col">
+        <div class="kpi-card">
+          <div class="kpi-lbl">Total Revenue (Excluding GST)</div>
+          <div class="kpi-val" id="o4-revenue-excl">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-gst">
+          <div class="kpi-lbl">GST Collected</div>
+          <div class="kpi-val" id="o4-gst-c2">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-green">
+          <div class="kpi-lbl">Total Revenue (Including GST)</div>
+          <div class="kpi-val" id="o4-revenue-incl-c2">₹0.00</div>
+        </div>
       </div>
-      <div class="kpi-card kpi-gst">
-        <div class="kpi-lbl">GST Collected</div>
-        <div class="kpi-val" id="o-gst">₹0.00</div>
-      </div>
-      <div class="kpi-card kpi-commission">
-        <div class="kpi-lbl">Commission (10%)</div>
-        <div class="kpi-val" id="o-commission">₹0.00</div>
-      </div>
-      <div class="kpi-card kpi-net">
-        <div class="kpi-lbl">Net Revenue (Total Revenue − Commission 10%)</div>
-        <div class="kpi-val" id="o-net">₹0.00</div>
-      </div>
-    </div>
 
-    <div class="owner-row row-3" style="grid-template-columns:1fr;">
-      <div class="kpi-card kpi-pending" id="o-pending-card">
-        <div class="kpi-lbl">Pending Payments</div>
-        <div class="kpi-val" id="o-pending">₹0.00</div>
-        <div class="kpi-sub" id="o-pending-sub"></div>
+      <div class="ofg-col">
+        <div class="kpi-card kpi-premium">
+          <div class="kpi-lbl">Total Revenue (Including GST)</div>
+          <div class="kpi-val" id="o4-revenue-incl-c3">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-commission">
+          <div class="kpi-lbl">Commission (10% on Total Revenue Including GST)</div>
+          <div class="kpi-val" id="o4-commission">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-net">
+          <div class="kpi-lbl">Net Revenue</div>
+          <div class="kpi-val" id="o4-net-c3">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-received">
+          <div class="kpi-lbl">Amount Received from Restaurant Sale</div>
+          <div class="kpi-val" id="o4-received">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-balance">
+          <div class="kpi-lbl">Balance Receivable</div>
+          <div class="kpi-val" id="o4-balance">₹0.00</div>
+        </div>
+      </div>
+
+      <div class="ofg-col">
+        <div class="kpi-card kpi-net">
+          <div class="kpi-lbl">Net Revenue</div>
+          <div class="kpi-val" id="o4-net-c4">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-orange">
+          <div class="kpi-lbl">GST</div>
+          <div class="kpi-val" id="o4-gst-c4">₹0.00</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-lbl">Purchase</div>
+          <div class="kpi-val" id="o4-purchase">₹0.00</div>
+        </div>
+        <div class="kpi-card" id="o4-profit-loss-card">
+          <div class="kpi-lbl">Owner Profit / Loss</div>
+          <div class="kpi-val" id="o4-profit-loss">₹0.00</div>
+        </div>
       </div>
     </div>
 
@@ -1804,6 +2064,81 @@
   </div>
 </section>
 
+<section class="admin-manager-only-block" id="item-master-panel">
+  <div class="payment-history-panel" style="margin:24px 6vw 0;">
+    <div class="payment-history-heading">
+      <h3>📋 Item List Management</h3>
+    </div>
+    <div class="item-list-mgmt-controls">
+      <div class="item-list-mgmt-field">
+        <span class="item-list-mgmt-label">Upload List</span>
+        <button type="button" class="btn-stamp" id="item-upload-btn">⬆️ Upload Item List</button>
+        <input type="file" id="item-upload-file" accept=".xlsx,.xls" style="display:none;">
+      </div>
+      <button type="button" class="btn-stamp" id="item-template-btn">📄 Download Template</button>
+      <button type="button" class="btn-stamp" id="item-history-toggle-btn">📋 Uploaded List History</button>
+    </div>
+    <div class="item-list-mgmt-hint" id="item-list-mgmt-hint"></div>
+
+    <div class="payment-history-table-wrap" id="item-history-wrap" style="display:none; margin-top:14px;">
+      <table class="payment-history-table">
+        <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Uploaded Date &amp; Time</th>
+            <th>Items</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="item-history-body"></tbody>
+      </table>
+      <div class="payment-history-empty" id="item-history-empty">No item lists uploaded yet.</div>
+    </div>
+  </div>
+</section>
+
+<section class="admin-manager-only-block" id="purchase-panel">
+  <div class="payment-history-panel" style="margin:24px 6vw 0;">
+    <div class="payment-history-heading">
+      <h3>Purchase Module</h3>
+      <button type="button" class="btn-stamp" id="purchase-export-btn">Export to Excel</button>
+    </div>
+
+    <div class="report-summary-cards" style="margin-bottom:18px;">
+      <div class="kpi-card kpi-premium">
+        <div class="kpi-lbl">Total Purchases</div>
+        <div class="kpi-val" id="purchase-total">₹0.00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-lbl">Total Entries</div>
+        <div class="kpi-val" id="purchase-count">0</div>
+      </div>
+    </div>
+
+    <div class="payment-history-table-wrap">
+      <table class="payment-history-table">
+        <thead>
+          <tr>
+            <th>Purchase Date</th>
+            <th>Supplier Name</th>
+            <th>Item / Description</th>
+            <th>Quantity</th>
+            <th>Amount</th>
+            <th>Payment Mode</th>
+            <th>Remarks</th>
+            <th>Entered By</th>
+            <th>Entry Time</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="purchase-history-body"></tbody>
+      </table>
+      <div class="payment-history-empty" id="purchase-history-empty">No purchases recorded yet.</div>
+    </div>
+  </div>
+</section>
+
 <section class="kot-history-block">
   <div class="payment-history-panel" style="margin:24px 6vw 0;">
     <div class="payment-history-heading">
@@ -2006,8 +2341,10 @@
       <input type="search" id="search" placeholder="Search by customer, table, or order ID...">
       <div style="display:flex; align-items:center; gap:14px;">
         <span class="save-indicator" id="save-indicator">Saved</span>
+        <button type="button" class="btn-stamp can-manage-kot" id="purchase-entry-btn">Purchase Entry</button>
         <button type="button" class="btn-stamp admin-only" id="payment-received-btn">Payment Received</button>
         <button type="button" class="btn-stamp admin-only" id="export-btn">Export to Excel</button>
+        <button type="button" class="btn-stamp danger admin-only" id="reset-data-btn">Reset</button>
       </div>
     </div>
     <div class="rail" id="rail"></div>
@@ -2054,6 +2391,109 @@
         <button type="button" class="btn-ghost" id="payment-cancel-btn">Cancel</button>
       </div>
     </form>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="purchase-modal-overlay">
+  <div class="modal-card">
+    <h2 id="purchase-modal-title">Purchase Entry</h2>
+    <form id="purchase-form" autocomplete="off">
+      <input type="hidden" id="pur-id">
+      <div class="field">
+        <label for="pur-date">Purchase Date</label>
+        <input type="date" id="pur-date" required>
+      </div>
+      <div class="field">
+        <label for="pur-supplier">Supplier Name</label>
+        <input type="text" id="pur-supplier" placeholder="e.g. Fresh Farms Traders" required>
+      </div>
+      <div class="field">
+        <label for="pur-item">Item / Description</label>
+        <input type="text" id="pur-item" placeholder="e.g. Vegetables, Rice, Cooking Gas" required>
+      </div>
+      <div class="field">
+        <label for="pur-qty">Quantity <span class="optional-tag">(optional)</span></label>
+        <input type="text" id="pur-qty" placeholder="e.g. 25 kg, 2 cylinders">
+      </div>
+      <div class="field">
+        <label for="pur-amount">Amount</label>
+        <div class="currency-field">
+          <span class="currency-prefix">₹</span>
+          <input type="number" id="pur-amount" min="0" step="0.01" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="pur-mode">Payment Mode</label>
+        <select id="pur-mode">
+          <option>Cash</option>
+          <option>Card</option>
+          <option>UPI</option>
+          <option>Bank Transfer</option>
+          <option>Credit</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pur-remarks">Remarks <span class="optional-tag">(optional)</span></label>
+        <textarea id="pur-remarks" rows="2" placeholder="Notes about this purchase"></textarea>
+      </div>
+      <div class="modal-error" id="purchase-form-error"></div>
+      <div class="pad-actions">
+        <button type="submit" class="btn-primary" id="purchase-save-btn">Save</button>
+        <button type="button" class="btn-ghost" id="purchase-cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="reset-data-modal-overlay">
+  <div class="modal-card modal-card-wide" id="reset-data-modal-card">
+    <h2>Reset / Data Management</h2>
+    <p class="reset-warning-intro">Admin only. This screen is kept separate from normal admin actions on purpose — deleting data here is permanent and cannot be undone.</p>
+
+    <div class="reset-data-checklist" id="reset-data-checklist">
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="staffLogin"> Staff Login Data <span class="optional-tag">(login credentials are set in code — nothing stored here to delete)</span></label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="managerLogin"> Manager Login Data <span class="optional-tag">(login credentials are set in code — nothing stored here to delete)</span></label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="ownerLogin"> Owner Login Data <span class="optional-tag">(login credentials are set in code — nothing stored here to delete)</span></label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="sales"> Restaurant Sales / Tickets</label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="kot"> KOT History</label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="invoice"> Invoice History</label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="purchases"> Purchase Entries</label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="deletedOrders"> Deleted Order History</label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="editHistory"> Order Edit History</label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="monthlyReports"> Monthly Reports <span class="optional-tag">(generated live from Sales/Tickets — clearing that clears reports too)</span></label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="dashboard"> Dashboard Data <span class="optional-tag">(Payment Received records)</span></label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="allTransactions"> All Transaction Data <span class="optional-tag">(covers every category above except login data)</span></label>
+    </div>
+
+    <div class="modal-error" id="reset-data-error"></div>
+    <div class="reset-data-success" id="reset-data-success" style="display:none;">Selected data deleted successfully.</div>
+
+    <div class="pad-actions" style="flex-wrap:wrap;">
+      <button type="button" class="btn-ghost" id="reset-select-all-btn">Select All</button>
+      <button type="button" class="btn-ghost" id="reset-clear-all-btn">Clear All</button>
+      <button type="button" class="btn-primary reset-delete-btn" id="reset-delete-btn">Delete Selected Data</button>
+      <button type="button" class="btn-ghost" id="reset-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="item-edit-modal-overlay">
+  <div class="modal-card modal-card-wide" id="item-edit-modal-card">
+    <h2 id="item-edit-modal-title">Edit Item List</h2>
+    <p class="item-edit-hint" id="item-edit-hint"></p>
+    <div class="item-edit-table-wrap">
+      <table class="item-edit-table">
+        <thead><tr><th>Item Name</th><th>Rate ₹</th><th></th></tr></thead>
+        <tbody id="item-edit-body"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn-ghost" id="item-edit-add-row-btn">+ Add Item</button>
+    <div class="modal-error" id="item-edit-error"></div>
+    <div class="pad-actions">
+      <button type="button" class="btn-primary" id="item-edit-save-btn">Save</button>
+      <button type="button" class="btn-ghost" id="item-edit-cancel-btn">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -2133,18 +2573,18 @@
   //  Add more accounts by adding more lines to the tables below.
   // ============================================================
   var ADMIN_USERS = {
-    'admin': 'admin9945'
+    'admin': 'admin123'
   };
   var MANAGER_USERS = {
-    'manager': 'manager456'
+    'manager': 'manager123'
   };
   var OWNER_USERS = {
-    'owner': 'owner786'
+    'owner': 'owner123'
   };
   var STAFF_USERS = {
     'Bonomoli': 'bonomoli123',
-    'Masum': 'masum222',
-    'Nargis': 'nargis333'
+    'Masum': 'masum123',
+    'Nargis': 'nargis123'
   };
   // Exposed for the order-form script block below (this file uses two
   // separate top-level IIFEs), so the Waiter dropdown always reflects the
@@ -2348,10 +2788,12 @@
   const DELETION_LOG_KEY = 'bhli_deletion_log_v1';
   const PAYMENTS_STORAGE_KEY = 'bhli_payments_v1';
   const EDIT_HISTORY_KEY = 'bhli_edit_history_v1';
+  const ITEM_MASTER_KEY = 'bhli_item_master_v1';
   let orders = [];
   let payments = [];
   let editHistory = [];
   let deletionLog = [];
+  let itemMaster = []; // [{name, rate}] — populated from the uploaded Excel sheet
   let knownIds = new Set();
   let editingId = null;
   let editSnapshot = null;
@@ -3627,24 +4069,61 @@
     $('#m-parcel').textContent = fmtMoney(parcelTotal);
 
     // owner dashboard metrics
-    const pendingOrders = orders.filter(o=>o.status==='Pending');
-    const pendingPayments = pendingOrders.reduce((s,o)=>s+Number(o.amount||0),0);
-    const overduePending = pendingOrders.filter(o=>!isToday(o.date));
     const commission = revenue * 0.10;
     const netRevenue = revenue - commission;
     // Payment Received module: Amount Received = sum of all Admin-entered
-    // payments; Balance Receivable = Total Revenue - Amount Received.
+    // payments (i.e. actual amount received from restaurant sales).
+    // NOTE: the Admin Financial Summary panel below (#a-balance) still uses
+    // the ORIGINAL Balance Receivable formula (Total Revenue − Amount
+    // Received) — only the Owner Dashboard's Balance Receivable changed.
     const amountReceived = payments.reduce((s,p)=>s+Number(p.amount||0),0);
     const balanceReceivable = revenue - amountReceived;
-    $('#o-revenue').textContent = fmtMoney(revenue);
-    $('#o-today').textContent = fmtMoney(todayRevenue);
-    $('#o-gst').textContent = fmtMoney(gstTotal);
-    $('#o-bookings').textContent = total;
-    $('#o-pending').textContent = fmtMoney(pendingPayments);
-    $('#o-commission').textContent = fmtMoney(commission);
-    $('#o-net').textContent = fmtMoney(netRevenue);
-    if($('#o-received')) $('#o-received').textContent = fmtMoney(amountReceived);
-    if($('#o-balance')) $('#o-balance').textContent = fmtMoney(balanceReceivable);
+    // Owner Dashboard four-column layout — see calculations below:
+    //   Total Revenue (Including GST) = Total Revenue (Excluding GST) + GST
+    //   Commission = 10% × Total Revenue (Including GST)
+    //   Net Revenue = Total Revenue (Including GST) − Commission
+    //   Balance Receivable = Net Revenue − Amount Received from Restaurant Sale
+    //   Owner Profit/Loss = Net Revenue − GST − Purchase (from the Purchase
+    //     Module); positive = Profit, negative = Loss.
+    const revenueExclGst = revenue - gstTotal;
+    const ownerBalanceReceivable = netRevenue - amountReceived;
+    const purchaseTotal = purchases.reduce((s,p)=>s+Number(p.amount||0),0);
+    const ownerProfitLoss = netRevenue - gstTotal - purchaseTotal;
+
+    // Column 1
+    if($('#o4-bookings')) $('#o4-bookings').textContent = total;
+    if($('#o4-today')) $('#o4-today').textContent = fmtMoney(todayRevenue);
+    // Column 2
+    if($('#o4-revenue-excl')) $('#o4-revenue-excl').textContent = fmtMoney(revenueExclGst);
+    if($('#o4-gst-c2')) $('#o4-gst-c2').textContent = fmtMoney(gstTotal);
+    if($('#o4-revenue-incl-c2')) $('#o4-revenue-incl-c2').textContent = fmtMoney(revenue);
+    // Column 3
+    if($('#o4-revenue-incl-c3')) $('#o4-revenue-incl-c3').textContent = fmtMoney(revenue);
+    if($('#o4-commission')) $('#o4-commission').textContent = fmtMoney(commission);
+    if($('#o4-net-c3')) $('#o4-net-c3').textContent = fmtMoney(netRevenue);
+    if($('#o4-received')) $('#o4-received').textContent = fmtMoney(amountReceived);
+    if($('#o4-balance')) $('#o4-balance').textContent = fmtMoney(ownerBalanceReceivable);
+    // Column 4
+    if($('#o4-net-c4')) $('#o4-net-c4').textContent = fmtMoney(netRevenue);
+    if($('#o4-gst-c4')) $('#o4-gst-c4').textContent = fmtMoney(gstTotal);
+    if($('#o4-purchase')) $('#o4-purchase').textContent = fmtMoney(purchaseTotal);
+    const profitLossVal = $('#o4-profit-loss');
+    const profitLossCard = $('#o4-profit-loss-card');
+    if(profitLossVal){
+      // 🟢 ↑ Profit / 🔴 ↓ Loss / 🟡 → exactly zero (no profit, no loss) —
+      // updates automatically since this whole block re-runs on every
+      // render(), which already fires whenever revenue, GST, commission,
+      // amount received, or purchases change.
+      let icon, word, cls;
+      if(ownerProfitLoss > 0){ icon = '🟢 ↑'; word = 'Owner Profit'; cls = 'kpi-profit'; }
+      else if(ownerProfitLoss < 0){ icon = '🔴 ↓'; word = 'Owner Loss'; cls = 'kpi-loss'; }
+      else { icon = '🟡 →'; word = 'No Profit / No Loss'; cls = 'kpi-neutral'; }
+      profitLossVal.textContent = icon + ' ' + word + ': ' + fmtMoney(Math.abs(ownerProfitLoss));
+      if(profitLossCard){
+        profitLossCard.classList.remove('kpi-profit', 'kpi-loss', 'kpi-neutral');
+        profitLossCard.classList.add(cls);
+      }
+    }
 
     // Admin Financial Summary panel
     if($('#a-bookings')) $('#a-bookings').textContent = total;
@@ -3655,18 +4134,6 @@
     if($('#a-net')) $('#a-net').textContent = fmtMoney(netRevenue);
     if($('#a-received')) $('#a-received').textContent = fmtMoney(amountReceived);
     if($('#a-balance')) $('#a-balance').textContent = fmtMoney(balanceReceivable);
-
-    const pendingCard = $('#o-pending-card');
-    const pendingSub = $('#o-pending-sub');
-    if(overduePending.length){
-      pendingCard.classList.add('overdue');
-      pendingSub.textContent = overduePending.length + ' ticket' + (overduePending.length > 1 ? 's' : '') + ' overdue (pending since a previous day)';
-      pendingSub.classList.add('overdue-flag');
-    } else {
-      pendingCard.classList.remove('overdue');
-      pendingSub.textContent = pendingOrders.length ? 'All pending tickets are from today' : 'No outstanding payments';
-      pendingSub.classList.remove('overdue-flag');
-    }
 
     // waiter breakdown
     const waiterCounts = {};
@@ -3890,11 +4357,79 @@
     $('#f-amount').value = total.toFixed(2);
   }
 
+  // Free-text item name field with a live search-as-you-type suggestion
+  // list, sourced from the current Item Master (the latest Active upload
+  // from Admin's Item List Management panel). Typing 3+ characters shows
+  // matching items; picking one (or typing the exact name) auto-fetches
+  // its Rate. Anything not in the master can still just be typed in full —
+  // the form never blocks on an item that isn't on the sheet.
+  const ITEM_SEARCH_MIN_CHARS = 3;
+
+  function wireItemNameSearch(row){
+    const input = row.querySelector('.item-name');
+    const box = row.querySelector('.item-name-suggestions');
+    const rateInput = row.querySelector('.item-rate');
+
+    function applyRateFor(name){
+      const match = itemMaster.find(it => it.name.toLowerCase() === name.toLowerCase());
+      if(match){
+        rateInput.value = match.rate;
+        row._updateRowAmount();
+        recalcTotal();
+      }
+      return match;
+    }
+
+    function renderSuggestions(){
+      const q = input.value.trim().toLowerCase();
+      if(q.length < ITEM_SEARCH_MIN_CHARS){
+        box.style.display = 'none';
+        box.innerHTML = '';
+        return;
+      }
+      const matches = itemMaster.filter(it => it.name.toLowerCase().includes(q)).slice(0, 8);
+      if(!matches.length){
+        box.innerHTML = '<div class="item-name-empty">No matching items in the active list</div>';
+        box.style.display = 'block';
+        return;
+      }
+      box.innerHTML = matches.map(it =>
+        `<div class="item-suggestion" data-name="${escapeHtml(it.name)}" data-rate="${it.rate}">
+          <span>${escapeHtml(it.name)}</span><span class="item-suggestion-rate">${fmtMoney(it.rate)}</span>
+        </div>`
+      ).join('');
+      box.style.display = 'block';
+    }
+
+    input.addEventListener('input', function(){
+      renderSuggestions();
+      row._updateRowAmount();
+    });
+    input.addEventListener('focus', renderSuggestions);
+    input.addEventListener('blur', function(){
+      // Delay so a click on a suggestion registers before we hide the box.
+      setTimeout(() => { box.style.display = 'none'; }, 150);
+      applyRateFor(input.value.trim());
+    });
+    box.addEventListener('mousedown', function(e){
+      const opt = e.target.closest('.item-suggestion');
+      if(!opt) return;
+      input.value = opt.getAttribute('data-name');
+      rateInput.value = opt.getAttribute('data-rate');
+      box.style.display = 'none';
+      row._updateRowAmount();
+      recalcTotal();
+    });
+  }
+
   function addItemRow(name, qty, amount){
     const row = document.createElement('div');
     row.className = 'item-row';
     row.innerHTML = `
-      <input type="text" class="item-name" placeholder="Item name" autocomplete="off">
+      <div class="item-name-wrap">
+        <input type="text" class="item-name" placeholder="Type ${ITEM_SEARCH_MIN_CHARS}+ letters to search" autocomplete="off">
+        <div class="item-name-suggestions"></div>
+      </div>
       <input type="number" class="item-qty" min="1" step="1">
       <input type="number" class="item-rate" min="0" step="0.01" placeholder="0.00">
       <span class="item-amount">₹0.00</span>
@@ -3908,7 +4443,9 @@
       const r = Number(row.querySelector('.item-rate').value) || 0;
       row.querySelector('.item-amount').textContent = fmtMoney(q * r);
     }
+    row._updateRowAmount = updateRowAmount;
     updateRowAmount();
+    wireItemNameSearch(row);
     row.querySelector('.item-qty').addEventListener('input', updateRowAmount);
     row.querySelector('.item-rate').addEventListener('input', updateRowAmount);
     row.querySelector('.item-row-remove').addEventListener('click', function(){
@@ -4625,6 +5162,788 @@
   })();
 
   // ============================================================
+  //  PURCHASE MODULE (Admin + Manager)
+  // ============================================================
+  const PURCHASES_STORAGE_KEY = 'bhli_purchases_v1';
+  let purchases = [];
+
+  function loadPurchases(){
+    try{
+      const raw = localStorage.getItem(PURCHASES_STORAGE_KEY);
+      purchases = raw ? JSON.parse(raw) : [];
+    }catch(e){
+      purchases = [];
+    }
+    renderPurchases();
+  }
+
+  function savePurchases(){
+    try{
+      localStorage.setItem(PURCHASES_STORAGE_KEY, JSON.stringify(purchases));
+    }catch(e){
+      alert('Failed to save purchase record: ' + e.message);
+    }
+  }
+
+  function renderPurchases(){
+    const tbody = $('#purchase-history-body');
+    const empty = $('#purchase-history-empty');
+    const totalEl = $('#purchase-total');
+    const countEl = $('#purchase-count');
+    if(!tbody) return;
+
+    const list = purchases.slice(); // newest-first order already maintained on save
+    tbody.innerHTML = list.map(p => `
+      <tr>
+        <td>${new Date(p.date).toLocaleDateString()}</td>
+        <td>${escapeHtml(p.supplier)}</td>
+        <td>${escapeHtml(p.item)}</td>
+        <td>${escapeHtml(p.qty || '—')}</td>
+        <td class="p-amount">${fmtMoney(p.amount)}</td>
+        <td>${escapeHtml(p.mode || '—')}</td>
+        <td>${escapeHtml(p.remarks || '—')}</td>
+        <td>${escapeHtml(p.enteredBy || '—')}</td>
+        <td>${fmtDateTime(p.entryTime)}</td>
+        <td class="p-actions">
+          <button type="button" class="icon-btn" data-edit-purchase="${p.id}">Edit</button>
+          <button type="button" class="icon-btn danger" data-delete-purchase="${p.id}">Delete</button>
+        </td>
+      </tr>`).join('');
+    if(empty) empty.style.display = list.length ? 'none' : 'block';
+
+    const total = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    if(totalEl) totalEl.textContent = fmtMoney(total);
+    if(countEl) countEl.textContent = purchases.length;
+  }
+
+  (function(){
+    const openBtn = $('#purchase-entry-btn');
+    const overlay = $('#purchase-modal-overlay');
+    const modalTitle = $('#purchase-modal-title');
+    const purForm = $('#purchase-form');
+    const purIdField = $('#pur-id');
+    const purDateField = $('#pur-date');
+    const purSupplierField = $('#pur-supplier');
+    const purItemField = $('#pur-item');
+    const purQtyField = $('#pur-qty');
+    const purAmountField = $('#pur-amount');
+    const purModeField = $('#pur-mode');
+    const purRemarksField = $('#pur-remarks');
+    const purError = $('#purchase-form-error');
+    const cancelBtn = $('#purchase-cancel-btn');
+    if(!openBtn || !overlay || !purForm) return;
+
+    let editingPurchaseId = null;
+
+    function isAdminOrManagerSession(){
+      return document.body.classList.contains('role-admin') || document.body.classList.contains('role-manager');
+    }
+
+    function openModal(purchase){
+      purError.textContent = '';
+      if(purchase){
+        editingPurchaseId = purchase.id;
+        purIdField.value = purchase.id;
+        purDateField.value = (purchase.date || '').slice(0, 10) || currentDateValue();
+        purSupplierField.value = purchase.supplier || '';
+        purItemField.value = purchase.item || '';
+        purQtyField.value = purchase.qty || '';
+        purAmountField.value = purchase.amount != null ? purchase.amount : '';
+        purModeField.value = purchase.mode || 'Cash';
+        purRemarksField.value = purchase.remarks || '';
+        modalTitle.textContent = 'Edit Purchase';
+      } else {
+        editingPurchaseId = null;
+        purForm.reset();
+        purIdField.value = '';
+        purDateField.value = currentDateValue();
+        modalTitle.textContent = 'Purchase Entry';
+      }
+      overlay.classList.remove('hidden');
+      purSupplierField.focus();
+    }
+
+    function closeModal(){
+      overlay.classList.add('hidden');
+      editingPurchaseId = null;
+      purForm.reset();
+      purError.textContent = '';
+    }
+
+    openBtn.addEventListener('click', function(){
+      if(!isAdminOrManagerSession()){
+        alert('Only Admin or Manager can add purchase records.');
+        return;
+      }
+      openModal(null);
+    });
+
+    cancelBtn.addEventListener('click', closeModal);
+
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal();
+    });
+
+    purForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(!isAdminOrManagerSession()){
+        purError.textContent = 'Only Admin or Manager can save purchase records.';
+        return;
+      }
+      const dateVal = purDateField.value;
+      const supplierVal = purSupplierField.value.trim();
+      const itemVal = purItemField.value.trim();
+      const qtyVal = purQtyField.value.trim();
+      const amountVal = Number(purAmountField.value);
+      const modeVal = purModeField.value;
+      const remarksVal = purRemarksField.value.trim();
+
+      if(!dateVal || !supplierVal || !itemVal || !amountVal || amountVal <= 0){
+        purError.textContent = 'Purchase Date, Supplier Name, Item/Description and a valid Amount are required.';
+        return;
+      }
+
+      if(editingPurchaseId){
+        const existing = purchases.find(p => p.id === editingPurchaseId);
+        if(existing){
+          existing.date = dateVal;
+          existing.supplier = supplierVal;
+          existing.item = itemVal;
+          existing.qty = qtyVal;
+          existing.amount = amountVal;
+          existing.mode = modeVal;
+          existing.remarks = remarksVal;
+        }
+      } else {
+        purchases.unshift({
+          id: genCompactId('PUR'),
+          date: dateVal,
+          supplier: supplierVal,
+          item: itemVal,
+          qty: qtyVal,
+          amount: amountVal,
+          mode: modeVal,
+          remarks: remarksVal,
+          enteredBy: currentSessionUser(),
+          entryTime: new Date().toISOString()
+        });
+      }
+
+      savePurchases();
+      renderPurchases();
+      closeModal();
+    });
+
+    const historyBody = $('#purchase-history-body');
+    if(historyBody){
+      historyBody.addEventListener('click', function(e){
+        const editId = e.target.getAttribute && e.target.getAttribute('data-edit-purchase');
+        const delId = e.target.getAttribute && e.target.getAttribute('data-delete-purchase');
+
+        if(editId){
+          if(!isAdminOrManagerSession()){
+            alert('Only Admin or Manager can edit purchase records.');
+            return;
+          }
+          const p = purchases.find(p => p.id === editId);
+          if(p) openModal(p);
+        }
+
+        if(delId){
+          if(!isAdminOrManagerSession()){
+            alert('Only Admin or Manager can delete purchase records.');
+            return;
+          }
+          const p = purchases.find(p => p.id === delId);
+          if(!p) return;
+          if(confirm('Delete this purchase of ' + fmtMoney(p.amount) + ' from ' + p.supplier + '? This cannot be undone.')){
+            purchases = purchases.filter(p => p.id !== delId);
+            savePurchases();
+            renderPurchases();
+          }
+        }
+      });
+    }
+
+    const purchaseExportBtn = $('#purchase-export-btn');
+    if(purchaseExportBtn){
+      purchaseExportBtn.addEventListener('click', function(){
+        if(!isAdminOrManagerSession()){
+          alert('Only Admin or Manager can export purchase records.');
+          return;
+        }
+        try{
+          const rows = purchases.map(p => ({
+            'Purchase Date': new Date(p.date).toLocaleDateString(),
+            'Supplier Name': p.supplier,
+            'Item / Description': p.item,
+            'Quantity': p.qty || '',
+            'Amount': Number(p.amount || 0),
+            'Payment Mode': p.mode || '',
+            'Remarks': p.remarks || '',
+            'Entered By': p.enteredBy || '',
+            'Entry Time': fmtDateTime(p.entryTime)
+          }));
+
+          const totalPurchases = purchases.reduce((s,p)=>s+Number(p.amount||0),0);
+          rows.push({ 'Purchase Date':'', 'Supplier Name':'', 'Item / Description':'', 'Quantity':'', 'Amount':'', 'Payment Mode':'', 'Remarks':'', 'Entered By':'', 'Entry Time':'' });
+          rows.push({ 'Purchase Date':'', 'Supplier Name':'TOTAL', 'Item / Description':'', 'Quantity':'', 'Amount': Number(totalPurchases.toFixed(2)), 'Payment Mode':'', 'Remarks':'', 'Entered By':'', 'Entry Time':'' });
+
+          const ws = XLSX.utils.json_to_sheet(rows);
+          ws['!cols'] = [{wch:14},{wch:22},{wch:26},{wch:14},{wch:14},{wch:14},{wch:28},{wch:14},{wch:20}];
+          const range = XLSX.utils.decode_range(ws['!ref']);
+          const currencyFmt = '"₹"#,##,##0.00';
+          for(let r = range.s.r + 1; r <= range.e.r; r++){
+            const amtRef = XLSX.utils.encode_cell({ r, c: 4 });
+            if(ws[amtRef] && ws[amtRef].t === 'n') ws[amtRef].z = currencyFmt;
+          }
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Purchases');
+          const filename = 'Purchase_History_' + new Date().toISOString().slice(0,10) + '.xlsx';
+          XLSX.writeFile(wb, filename);
+        }catch(err){
+          alert('Export failed: ' + err.message);
+        }
+      });
+    }
+  })();
+
+  // ============================================================
+  //  ITEM MASTER — item/price list driven by an uploaded Excel sheet.
+  //  Admin + Manager can Upload / Download Template / view History / Edit;
+  //  Staff only ever consumes the resulting search/autocomplete when
+  //  building a ticket, via wireItemNameSearch() above.
+  // ============================================================
+  const ITEM_MASTER_HISTORY_KEY = 'bhli_item_master_history_v1';
+  let itemMasterHistory = []; // [{id, fileName, uploadedAt, itemCount, status}]
+
+  function loadItemMaster(){
+    try{
+      const raw = localStorage.getItem(ITEM_MASTER_KEY);
+      itemMaster = raw ? JSON.parse(raw) : [];
+    }catch(e){
+      itemMaster = [];
+    }
+  }
+
+  function saveItemMaster(){
+    try{
+      localStorage.setItem(ITEM_MASTER_KEY, JSON.stringify(itemMaster));
+    }catch(e){
+      alert('Failed to save the item list: ' + e.message);
+    }
+  }
+
+  function loadItemMasterHistory(){
+    try{
+      const raw = localStorage.getItem(ITEM_MASTER_HISTORY_KEY);
+      itemMasterHistory = raw ? JSON.parse(raw) : [];
+    }catch(e){
+      itemMasterHistory = [];
+    }
+    renderItemMasterHistory();
+  }
+
+  function saveItemMasterHistory(){
+    try{
+      localStorage.setItem(ITEM_MASTER_HISTORY_KEY, JSON.stringify(itemMasterHistory));
+    }catch(e){ /* non-critical */ }
+  }
+
+  function renderItemMasterHistory(){
+    const body = $('#item-history-body');
+    const empty = $('#item-history-empty');
+    if(!body) return;
+    body.innerHTML = itemMasterHistory.map(h => `
+      <tr>
+        <td>
+          ${escapeHtml(h.fileName)}
+          ${h.lastEditedBy ? `<div class="item-history-edited-sub">Edited by ${escapeHtml(h.lastEditedBy)} · ${fmtDateTime(h.lastEditedAt)}</div>` : ''}
+        </td>
+        <td>${fmtDateTime(h.uploadedAt)}</td>
+        <td>${h.itemCount}</td>
+        <td>${h.status === 'Active' ? '<span class="badge completed">Active</span>' : '<span class="badge pending">Previous</span>'}</td>
+        <td class="p-actions">
+          <button type="button" class="icon-btn" data-edit-item-history="${h.id}">Edit</button>
+          <button type="button" class="icon-btn danger" data-delete-item-history="${h.id}">Delete</button>
+        </td>
+      </tr>`).join('');
+    if(empty) empty.style.display = itemMasterHistory.length ? 'none' : 'block';
+  }
+
+  (function(){
+    const uploadBtn = $('#item-upload-btn');
+    const fileInput = $('#item-upload-file');
+    const templateBtn = $('#item-template-btn');
+    const historyToggleBtn = $('#item-history-toggle-btn');
+    const historyWrap = $('#item-history-wrap');
+    const hintEl = $('#item-list-mgmt-hint');
+    if(!uploadBtn || !fileInput) return;
+
+    function isAdminSession(){
+      return document.body.classList.contains('role-admin') || document.body.classList.contains('role-manager');
+    }
+
+    function updateHint(){
+      if(!hintEl) return;
+      hintEl.textContent = itemMaster.length
+        ? itemMaster.length + ' item' + (itemMaster.length === 1 ? '' : 's') + ' in the active list — Staff and Manager see these immediately in New Ticket.'
+        : 'No item list uploaded yet — Item Name stays free text in New Ticket until one is.';
+    }
+    updateHint();
+
+    uploadBtn.addEventListener('click', function(){
+      if(!isAdminSession()){
+        alert('Only Admin or Manager can upload the item list.');
+        return;
+      }
+      fileInput.click();
+    });
+
+    // 1. Download Template — headers only need to stay exactly "Item Name"
+    // and "Rate" so a filled-in copy uploads cleanly.
+    if(templateBtn){
+      templateBtn.addEventListener('click', function(){
+        if(!isAdminSession()){
+          alert('Only Admin or Manager can download the item list template.');
+          return;
+        }
+        try{
+          const rows = [
+            { 'Item Name': 'Chicken Biryani', 'Rate': 180 },
+            { 'Item Name': 'Veg Fried Rice', 'Rate': 140 },
+            { 'Item Name': 'Paneer Butter Masala', 'Rate': 220 }
+          ];
+          const ws = XLSX.utils.json_to_sheet(rows);
+          ws['!cols'] = [{ wch: 28 }, { wch: 10 }];
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Item List');
+          XLSX.writeFile(wb, 'Item_List_Template.xlsx');
+        }catch(err){
+          alert('Could not generate the template: ' + err.message);
+        }
+      });
+    }
+
+    // 3. Uploaded File History — toggled open/closed rather than always
+    // taking up space, since most days nobody needs to look at it.
+    if(historyToggleBtn && historyWrap){
+      historyToggleBtn.addEventListener('click', function(){
+        historyWrap.style.display = historyWrap.style.display === 'none' ? 'block' : 'none';
+      });
+    }
+
+    // Edit / Delete on individual history rows. Only the file name label
+    // is editable (the actual item rows for a past upload aren't kept
+    // individually — only the current Active list's rows are — so "Edit"
+    // is a lightweight correction, e.g. a typo in the file name, not a
+    // full re-import). Deleting the Active row clears the live Item
+    // Master too, since there's no other stored source to fall back to.
+    const historyBody = $('#item-history-body');
+    if(historyBody){
+      historyBody.addEventListener('click', function(e){
+        const editId = e.target.getAttribute && e.target.getAttribute('data-edit-item-history');
+        const delId = e.target.getAttribute && e.target.getAttribute('data-delete-item-history');
+
+        if(editId){
+          if(!isAdminSession()){
+            alert('Only Admin or Manager can edit item list history.');
+            return;
+          }
+          const h = itemMasterHistory.find(x => x.id === editId);
+          if(!h) return;
+          if(window.openItemEditModal) window.openItemEditModal(h);
+        }
+
+        if(delId){
+          if(!isAdminSession()){
+            alert('Only Admin or Manager can delete item list history.');
+            return;
+          }
+          const h = itemMasterHistory.find(x => x.id === delId);
+          if(!h) return;
+          const isActive = h.status === 'Active';
+          const msg = isActive
+            ? 'This is the Active item list — deleting it also clears the current Item Master (there is no other saved copy of its rows), so Item Name will go back to free text in New Ticket until another file is uploaded. Delete anyway?'
+            : 'Delete this entry from the Uploaded List History? This cannot be undone.';
+          if(!confirm(msg)) return;
+          itemMasterHistory = itemMasterHistory.filter(x => x.id !== delId);
+          saveItemMasterHistory();
+          if(isActive){
+            itemMaster = [];
+            saveItemMaster();
+            updateHint();
+          }
+          renderItemMasterHistory();
+        }
+      });
+    }
+
+    fileInput.addEventListener('change', function(){
+      const file = fileInput.files && fileInput.files[0];
+      fileInput.value = '';
+      if(!file) return;
+      if(!isAdminSession()){
+        alert('Only Admin or Manager can upload the item list.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e){
+        try{
+          const data = new Uint8Array(e.target.result);
+          const wb = XLSX.read(data, { type: 'array' });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+          if(!rows.length){
+            alert('That sheet has no data rows to import.');
+            return;
+          }
+
+          // Header matching is case/spacing tolerant — "Item Name",
+          // "item name", "ITEM NAME " all resolve the same way, and the
+          // rate/price column accepts a few common header spellings.
+          const normalizeKey = (k) => String(k).trim().toLowerCase().replace(/\s+/g, ' ');
+          const nameKeys = ['item name', 'item', 'name'];
+          const rateKeys = ['rate', 'price', 'rate ₹', 'price ₹', 'rate (₹)', 'price (₹)'];
+
+          const headerKeys = Object.keys(rows[0]).map(normalizeKey);
+          const hasNameCol = headerKeys.some(k => nameKeys.includes(k));
+          const hasRateCol = headerKeys.some(k => rateKeys.includes(k));
+          if(!hasNameCol || !hasRateCol){
+            alert('This file is missing a required column. The sheet must have both "Item Name" and "Rate" headings — download the template for the exact format.');
+            return;
+          }
+
+          const parsed = [];
+          rows.forEach(row => {
+            let nameVal = null, rateVal = null;
+            Object.keys(row).forEach(k => {
+              const nk = normalizeKey(k);
+              if(nameKeys.includes(nk) && nameVal == null) nameVal = row[k];
+              if(rateKeys.includes(nk) && rateVal == null) rateVal = row[k];
+            });
+            const name = String(nameVal || '').trim();
+            const rate = Number(rateVal);
+            if(name && !isNaN(rate) && rate >= 0){
+              parsed.push({ name, rate });
+            }
+          });
+
+          if(!parsed.length){
+            alert('No valid rows found — every row needs both an Item Name and a numeric Rate.');
+            return;
+          }
+
+          // 6. The most recently uploaded valid file becomes Active; every
+          // earlier entry in the history flips to Previous. Existing/
+          // historical tickets keep whatever rate was saved on them at the
+          // time — only new item selections use this updated list.
+          itemMaster = parsed;
+          saveItemMaster();
+
+          itemMasterHistory.forEach(h => { h.status = 'Previous'; });
+          itemMasterHistory.unshift({
+            id: genCompactId('ITM'),
+            fileName: file.name,
+            uploadedAt: new Date().toISOString(),
+            itemCount: parsed.length,
+            items: parsed.slice(),
+            status: 'Active'
+          });
+          saveItemMasterHistory();
+          renderItemMasterHistory();
+          if(historyWrap) historyWrap.style.display = 'block';
+
+          updateHint();
+          alert('Item list updated — ' + parsed.length + ' item' + (parsed.length === 1 ? '' : 's') + ' loaded from ' + file.name + ' is now the active list.');
+        }catch(err){
+          alert('Could not read that file: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // ---------- Edit Item List modal ----------
+    // Opens the actual saved rows for a given upload (not just its file
+    // name) so Admin can correct a name/rate, add, or remove items. Saving
+    // always persists to that history entry; if it's the Active entry, the
+    // live Item Master is updated in the same step, so New Ticket's item
+    // search reflects the change immediately — no separate publish step.
+    const itemEditOverlay = $('#item-edit-modal-overlay');
+    const itemEditTitle = $('#item-edit-modal-title');
+    const itemEditHint = $('#item-edit-hint');
+    const itemEditBody = $('#item-edit-body');
+    const itemEditError = $('#item-edit-error');
+    const itemEditAddRowBtn = $('#item-edit-add-row-btn');
+    const itemEditSaveBtn = $('#item-edit-save-btn');
+    const itemEditCancelBtn = $('#item-edit-cancel-btn');
+    let editingItemHistoryId = null;
+
+    function itemEditRowHtml(name, rate){
+      return `<tr>
+        <td><input type="text" class="ie-name" value="${escapeHtml(name || '')}" placeholder="Item name"></td>
+        <td><input type="number" class="ie-rate" min="0" step="0.01" value="${rate != null ? rate : ''}" placeholder="0.00"></td>
+        <td><button type="button" class="ie-remove" aria-label="Remove item">&times;</button></td>
+      </tr>`;
+    }
+
+    function wireItemEditRemoveButtons(){
+      itemEditBody.querySelectorAll('.ie-remove').forEach(btn => {
+        btn.onclick = function(){
+          if(itemEditBody.querySelectorAll('tr').length > 1){
+            btn.closest('tr').remove();
+          } else {
+            btn.closest('tr').querySelector('.ie-name').value = '';
+            btn.closest('tr').querySelector('.ie-rate').value = '';
+          }
+        };
+      });
+    }
+
+    if(itemEditOverlay){
+      window.openItemEditModal = function(historyEntry){
+        editingItemHistoryId = historyEntry.id;
+        itemEditTitle.textContent = 'Edit Item List — ' + historyEntry.fileName;
+        itemEditHint.textContent = historyEntry.status === 'Active'
+          ? 'This is the Active list — saving updates New Ticket item search immediately.'
+          : 'This is a Previous (inactive) upload — saving only updates its saved record, not the live active list.';
+        itemEditError.textContent = '';
+        const items = historyEntry.items && historyEntry.items.length ? historyEntry.items : [{ name: '', rate: '' }];
+        itemEditBody.innerHTML = items.map(it => itemEditRowHtml(it.name, it.rate)).join('');
+        wireItemEditRemoveButtons();
+        itemEditOverlay.classList.remove('hidden');
+      };
+
+      function closeItemEditModal(){
+        itemEditOverlay.classList.add('hidden');
+        editingItemHistoryId = null;
+      }
+
+      itemEditAddRowBtn.addEventListener('click', function(){
+        itemEditBody.insertAdjacentHTML('beforeend', itemEditRowHtml('', ''));
+        wireItemEditRemoveButtons();
+        const rows = itemEditBody.querySelectorAll('tr');
+        rows[rows.length - 1].querySelector('.ie-name').focus();
+      });
+
+      itemEditCancelBtn.addEventListener('click', closeItemEditModal);
+      itemEditOverlay.addEventListener('click', function(e){
+        if(e.target === itemEditOverlay) closeItemEditModal();
+      });
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && !itemEditOverlay.classList.contains('hidden')) closeItemEditModal();
+      });
+
+      itemEditSaveBtn.addEventListener('click', function(){
+        if(!isAdminSession()){
+          alert('Only Admin or Manager can edit the item list.');
+          return;
+        }
+        const h = itemMasterHistory.find(x => x.id === editingItemHistoryId);
+        if(!h){
+          closeItemEditModal();
+          return;
+        }
+
+        const rows = Array.from(itemEditBody.querySelectorAll('tr'));
+        const updated = [];
+        for(const row of rows){
+          const name = row.querySelector('.ie-name').value.trim();
+          const rateVal = row.querySelector('.ie-rate').value;
+          if(!name && rateVal === '') continue; // silently skip a fully blank row
+          const rate = Number(rateVal);
+          if(!name || isNaN(rate) || rate < 0){
+            itemEditError.textContent = 'Every row needs an Item Name and a valid Rate (0 or more).';
+            return;
+          }
+          updated.push({ name, rate });
+        }
+        if(!updated.length){
+          itemEditError.textContent = 'Add at least one item before saving.';
+          return;
+        }
+        itemEditError.textContent = '';
+
+        // Auto-saved the moment Save is clicked — persisted to this
+        // history entry, and live-applied to the active Item Master too
+        // if this is the Active upload, with no extra step required.
+        h.items = updated;
+        h.itemCount = updated.length;
+        h.lastEditedBy = currentSessionUser();
+        h.lastEditedAt = new Date().toISOString();
+        saveItemMasterHistory();
+        renderItemMasterHistory();
+
+        if(h.status === 'Active'){
+          itemMaster = updated;
+          saveItemMaster();
+          updateHint();
+        }
+
+        closeItemEditModal();
+      });
+    }
+  })();
+
+  // ============================================================
+  //  RESET / DATA MANAGEMENT (Admin only)
+  // ============================================================
+  // Kept as its own dedicated screen, reached only via the "Reset" button,
+  // so it can never be triggered by accident from normal admin workflows.
+  // Deletion only ever touches actual stored DATA (orders, payments,
+  // purchases, edit/delete logs, the invoice counter) — never the app's
+  // structure, buttons, formulas, or login system, which all live in code
+  // and simply aren't reachable from here.
+  (function(){
+    const openBtn = $('#reset-data-btn');
+    const overlay = $('#reset-data-modal-overlay');
+    const errorEl = $('#reset-data-error');
+    const successEl = $('#reset-data-success');
+    const selectAllBtn = $('#reset-select-all-btn');
+    const clearAllBtn = $('#reset-clear-all-btn');
+    const deleteBtn = $('#reset-delete-btn');
+    const cancelBtn = $('#reset-cancel-btn');
+    if(!openBtn || !overlay) return;
+
+    function isAdminSession(){
+      return document.body.classList.contains('role-admin');
+    }
+
+    function getCheckboxes(){
+      return Array.from(overlay.querySelectorAll('input[type="checkbox"][data-reset-key]'));
+    }
+
+    function openModal(){
+      if(!isAdminSession()){
+        alert('Only Admin can access Reset / Data Management.');
+        return;
+      }
+      getCheckboxes().forEach(cb => { cb.checked = false; });
+      errorEl.textContent = '';
+      successEl.style.display = 'none';
+      overlay.classList.remove('hidden');
+    }
+
+    function closeModal(){
+      overlay.classList.add('hidden');
+    }
+
+    openBtn.addEventListener('click', openModal);
+    cancelBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal();
+    });
+
+    selectAllBtn.addEventListener('click', function(){
+      getCheckboxes().forEach(cb => { cb.checked = true; });
+      errorEl.textContent = '';
+      successEl.style.display = 'none';
+    });
+    clearAllBtn.addEventListener('click', function(){
+      getCheckboxes().forEach(cb => { cb.checked = false; });
+      errorEl.textContent = '';
+      successEl.style.display = 'none';
+    });
+
+    // Only the categories with real, independently-stored data actually do
+    // anything — the three Login Data checkboxes and Monthly Reports are
+    // informational (explained inline) since there's nothing separate to
+    // delete for them: credentials live in code, and reports are computed
+    // live from Sales/Tickets every time they're viewed.
+    function performReset(selectedKeys){
+      const set = new Set(selectedKeys);
+      const wantsAll = set.has('allTransactions');
+
+      if(set.has('sales') || wantsAll){
+        orders = [];
+        knownIds = new Set();
+        if(editingId){ resetForm(); }
+      }
+
+      // KOT-related fields, stripped off whatever orders remain (harmless
+      // no-op on each order if Sales/Tickets was also cleared above).
+      if(set.has('kot') || wantsAll){
+        orders.forEach(o => {
+          delete o.kotGenerated; delete o.kotNumber; delete o.kotGeneratedAt;
+          delete o.kotGeneratedBy; delete o.kotLastPrintedAt; delete o.kotLastPrintedBy;
+        });
+      }
+
+      // Invoice-related fields + the sequential counter itself.
+      if(set.has('invoice') || wantsAll){
+        orders.forEach(o => { delete o.invoiceNumber; });
+        try{ localStorage.setItem(INVOICE_COUNTER_KEY, '0'); }catch(e){ /* ignore */ }
+      }
+
+      if(set.has('purchases') || wantsAll){
+        purchases = [];
+        savePurchases();
+      }
+
+      if(set.has('deletedOrders') || wantsAll){
+        deletionLog = [];
+        saveDeletionLog();
+      }
+
+      if(set.has('editHistory') || wantsAll){
+        editHistory = [];
+        saveEditHistory();
+      }
+
+      // "Dashboard Data" = the Payment Received records that feed Amount
+      // Received / Balance Receivable on the dashboards.
+      if(set.has('dashboard') || wantsAll){
+        payments = [];
+        savePayments();
+      }
+
+      // Persist the orders array immediately (not debounced) — a reset is
+      // a one-off, high-stakes action, so it shouldn't be left to a delayed
+      // background save.
+      saveOrders();
+
+      // Refresh everything live: Owner Dashboard, Monthly Report, revenue/
+      // GST/commission/purchases/profit-loss/balance-receivable all derive
+      // from these same arrays, so re-rendering picks up the reset instantly.
+      render();
+      renderPayments();
+      renderPurchases();
+      renderKOTHistory();
+      renderDeleteHistory();
+      renderEditHistory();
+      if(window.generateOwnerReport) window.generateOwnerReport();
+    }
+
+    deleteBtn.addEventListener('click', function(){
+      if(!isAdminSession()){
+        alert('Only Admin can perform a data reset.');
+        return;
+      }
+      successEl.style.display = 'none';
+      const selected = getCheckboxes().filter(cb => cb.checked).map(cb => cb.getAttribute('data-reset-key'));
+      if(!selected.length){
+        errorEl.textContent = 'Please select at least one data category to delete.';
+        return;
+      }
+      errorEl.textContent = '';
+
+      const proceed = confirm('Warning: The selected data will be permanently deleted. This action cannot be undone.\n\nAre you sure you want to continue?');
+      if(!proceed) return;
+
+      performReset(selected);
+      getCheckboxes().forEach(cb => { cb.checked = false; });
+      successEl.style.display = 'block';
+    });
+  })();
+
+  // ============================================================
   //  COMPLETED TICKET DETAIL POPUP (view + print, all roles)
   // ============================================================
   (function(){
@@ -5246,6 +6565,8 @@
   })();
 
   // ---------- Init ----------
+  loadItemMaster();
+  loadItemMasterHistory();
   resetItemRows();
   onStatusChange();
   populateWaiterOptions();
@@ -5253,6 +6574,7 @@
   loadPayments();
   loadEditHistory();
   loadDeletionLog();
+  loadPurchases();
   loadOrders();
   if(window.generateOwnerReport) window.generateOwnerReport();
 })();
