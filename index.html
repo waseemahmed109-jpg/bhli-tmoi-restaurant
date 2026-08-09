@@ -295,6 +295,26 @@
     color:var(--ink);
     padding:4px 2px;
     outline:none;
+    text-overflow:ellipsis;
+  }
+  /* On narrow phones, the fixed-width Qty/Rate/Amount columns left too
+     little room for the item name (e.g. "Paneer Tikka" was getting cut to
+     "Paneer Tik"). Below 480px, the name gets its own full-width line, and
+     Qty/Rate/Amount/Remove move to a second line beneath it instead. */
+  @media (max-width:480px){
+    .item-row-header{ display:none; }
+    .item-row{
+      flex-wrap:wrap;
+      row-gap:2px;
+      padding-bottom:8px;
+      margin-bottom:2px;
+      border-bottom:1px dashed rgba(139,127,102,0.3);
+    }
+    .item-row .item-name-wrap{ flex:1 1 100%; order:1; }
+    .item-row .item-qty{ order:2; }
+    .item-row .item-rate{ order:3; }
+    .item-row .item-amount{ order:4; flex:1 1 auto; text-align:right; }
+    .item-row .item-row-remove{ order:5; }
   }
   .item-row .item-name:focus{border-bottom:1px solid var(--copper);}
   .item-name-suggestions{
@@ -1335,6 +1355,7 @@
   .report-table-wrap{
     max-height:480px;
     overflow:auto;
+    -webkit-overflow-scrolling:touch;
     border:1px solid rgba(7,28,56,0.12);
     border-radius:6px;
   }
@@ -1475,7 +1496,7 @@
     color:#5b5140;
     margin:0;
   }
-  .payment-history-table-wrap{ overflow-x:auto; }
+  .payment-history-table-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .history-month-select{
     font-family:'IBM Plex Mono',monospace;
     font-size:12px;
@@ -2878,7 +2899,7 @@
   //  Add more accounts by adding more lines to the tables below.
   // ============================================================
   var ADMIN_USERS = {
-    'admin': 'admin9945'
+    'admin': 'admin9986'
   };
   var MANAGER_USERS = {
     'manager': 'manager456'
