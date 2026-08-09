@@ -61,6 +61,33 @@
     text-transform:uppercase;
     color:#a89a80;
   }
+  /* Owner & Admin see the Arabic line, positioned on the right side of the
+     header (paired above the clock/session badge in .header-right); Staff
+     & Manager keep the original English subtitle under the restaurant name,
+     unchanged. Font size matches the "BHLI-TMOI RESTAURANT" h1 exactly so
+     the two sit visually balanced at opposite ends of the header. */
+  header .header-right{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:10px;
+  }
+  header .header-right p.header-subtitle-arabic{
+    display:none;
+    margin:0;
+    text-align:right;
+    text-transform:none;
+    letter-spacing:0;
+    font-family:'Traditional Arabic','Scheherazade New','Noto Naskh Arabic',serif;
+    font-size:clamp(28px,4vw,42px);
+    font-weight:700;
+    line-height:1.15;
+    color:#ffffff;
+  }
+  body.role-owner header .brand p.header-subtitle-default,
+  body.role-admin header .brand p.header-subtitle-default{ display:none; }
+  body.role-owner header .header-right p.header-subtitle-arabic,
+  body.role-admin header .header-right p.header-subtitle-arabic{ display:block; }
   #clock{
     font-family:'IBM Plex Mono',monospace;
     font-size:13px;
@@ -115,6 +142,17 @@
     color:#0a2647;
     margin-top:4px;
   }
+  /* Order Taken (Staff panel) - golden background, dark text for readability */
+  .stub.stub-order-taken{
+    background:#f0c14b;
+    border-color:rgba(184,112,63,0.45);
+  }
+  .stub.stub-order-taken::before{
+    background:#fff3d0;
+    border-color:rgba(184,112,63,0.4);
+  }
+  .stub.stub-order-taken .num{ color:#3a2a0a; }
+  .stub.stub-order-taken .lbl{ color:#4a3510; }
 
   /* ---------- Waiter board ---------- */
   .boards-row{
@@ -740,6 +778,13 @@
     padding:4px;
     cursor:pointer;
   }
+  /* Post-login welcome message (Staff & Manager) — sage green so it reads
+     as a friendly greeting rather than an urgent copper new-ticket alert. */
+  .alert-card.alert-welcome{
+    background:var(--sage);
+    color:#f4faf1;
+  }
+  .alert-card.alert-welcome .alert-dismiss{ color:#f4faf1; }
   @media (prefers-reduced-motion: reduce){
     .alert-card, .alert-card.leaving{ animation:none; }
   }
@@ -903,6 +948,11 @@
   body.role-staff .hide-for-staff{ display:none !important; }
   .staff-only-stub{ display:none !important; }
   body.role-staff .staff-only-stub{ display:flex !important; }
+  /* Hides specific cards/boards below Order Delete History from Admin &
+     Manager only — the underlying data/render logic is untouched, and
+     Staff's view of these (where applicable) is unaffected. */
+  body.role-admin .hide-for-admin-manager{ display:none !important; }
+  body.role-manager .hide-for-admin-manager{ display:none !important; }
 
   /* ---------- Owner dashboard ---------- */
   body.role-owner .operational-view{ display:none !important; }
@@ -998,6 +1048,13 @@
   }
   .kpi-card.kpi-commission .kpi-lbl{ color:#5a2f0e; }
   .kpi-card.kpi-commission .kpi-val{ color:var(--rust); font-weight:700; }
+  /* Order Taken - golden background, dark bold value for readability */
+  .kpi-card.kpi-order-taken{
+    background:#f0c14b;
+    border-color:rgba(184,112,63,0.45);
+  }
+  .kpi-card.kpi-order-taken .kpi-lbl{ color:#4a3510; }
+  .kpi-card.kpi-order-taken .kpi-val{ color:#3a2a0a; font-weight:700; }
   /* Net Revenue - black bold value */
   .kpi-card.kpi-net .kpi-val{ color:#111; font-weight:700; }
   /* Total Revenue (Including GST) highlight — green, per Owner Dashboard spec */
@@ -1037,6 +1094,15 @@
     display:flex;
     flex-direction:column;
     gap:14px;
+  }
+  /* Separates ticket-related cards (Total Booking / Today's Revenue /
+     Pending Tickets) from the Pending Payment amount below it, in
+     Column 1 of the Financial Summary (Owner Dashboard + Admin/Manager). */
+  .ofg-divider{
+    border:none;
+    border-top:1px dashed rgba(139,127,102,0.4);
+    margin:0;
+    width:100%;
   }
   @media (max-width:980px){
     .owner-financial-grid{ grid-template-columns:repeat(2, 1fr); }
@@ -1223,6 +1289,26 @@
   }
   .report-summary-cards .kpi-card{ padding:14px 14px 12px; }
   .report-summary-cards .kpi-val{ font-size:18px; }
+
+  /* ---------- Purchase Module: 4-card summary row ---------- */
+  .purchase-summary-cards{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+    margin-bottom:18px;
+  }
+  @media (min-width:720px){
+    .purchase-summary-cards{ grid-template-columns:repeat(4, 1fr); }
+  }
+  .purchase-summary-cards .kpi-card{ padding:14px 14px 12px; }
+  .purchase-summary-cards .kpi-val{ font-size:18px; }
+  /* Total Spoilage - warm red tint, distinct from Total Purchase */
+  .kpi-card.kpi-spoilage{
+    background:#fdeceb;
+    border-color:rgba(181,82,75,0.35);
+  }
+  .kpi-card.kpi-spoilage .kpi-lbl{ color:#7a2318; }
+  .kpi-card.kpi-spoilage .kpi-val{ color:var(--rust); font-weight:700; }
 
   .report-table-toolbar{
     display:flex;
@@ -1467,6 +1553,25 @@
   }
   table.payment-history-table td.p-actions .icon-btn.danger{ color:var(--rust); border-color:rgba(181,82,75,0.4); }
   table.payment-history-table td.p-actions .icon-btn:hover{ background:rgba(0,0,0,0.05); }
+  /* ---------- Expenses Module: Pending row highlight + banner ---------- */
+  table.payment-history-table tr.expense-row-pending td{
+    background:#fdeceb;
+    color:var(--rust);
+  }
+  table.payment-history-table tr.expense-row-pending td.p-status{
+    font-weight:700;
+  }
+  .expense-pending-banner{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    font-weight:700;
+    color:var(--rust);
+    background:#fdeceb;
+    border:1px solid rgba(181,82,75,0.4);
+    border-radius:6px;
+    padding:6px 12px;
+    white-space:nowrap;
+  }
   .payment-history-empty{
     font-size:12.5px;
     color:#8b7f66;
@@ -1743,14 +1848,17 @@
 <header>
   <div class="brand">
     <h1>BHLI-TMOI <span>Restaurant</span></h1>
-    <p>Front-of-house order board &amp; ticket log</p>
+    <p class="header-subtitle-default">Front-of-house order board &amp; ticket log</p>
   </div>
-  <div style="display:flex; align-items:flex-end; gap:22px; flex-wrap:wrap;">
-    <div id="clock"><strong id="clock-time">--:--</strong><span id="clock-date">-- -- ----</span></div>
-    <div class="session-badge">
-      <span>Signed in as <strong id="session-user" style="color:#f1e9da;">-</strong></span>
-      <span class="role-pill" id="session-role-pill">STAFF</span>
-      <button type="button" id="logout-btn">Log Out</button>
+  <div class="header-right">
+    <p class="header-subtitle-arabic" dir="rtl" lang="ar">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</p>
+    <div style="display:flex; align-items:flex-end; gap:22px; flex-wrap:wrap;">
+      <div id="clock"><strong id="clock-time">--:--</strong><span id="clock-date">-- -- ----</span></div>
+      <div class="session-badge">
+        <span>Signed in as <strong id="session-user" style="color:#f1e9da;">-</strong></span>
+        <span class="role-pill" id="session-role-pill">STAFF</span>
+        <button type="button" id="logout-btn">Log Out</button>
+      </div>
     </div>
   </div>
 </header>
@@ -1767,12 +1875,16 @@
     <div class="owner-financial-grid">
       <div class="ofg-col">
         <div class="kpi-card">
-          <div class="kpi-lbl">Total Booking</div>
+          <div class="kpi-lbl">Total Closed Booking</div>
           <div class="kpi-val" id="o4-bookings">0</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-lbl">Today's Revenue</div>
           <div class="kpi-val" id="o4-today">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-balance">
+          <div class="kpi-lbl">Pending Payment</div>
+          <div class="kpi-val" id="o4-pending-payment">₹0.00</div>
         </div>
       </div>
 
@@ -1784,6 +1896,10 @@
         <div class="kpi-card kpi-gst">
           <div class="kpi-lbl">GST Collected</div>
           <div class="kpi-val" id="o4-gst-c2">₹0.00</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-lbl">Parcel Charges</div>
+          <div class="kpi-val" id="o4-parcel-c2">₹0.00</div>
         </div>
         <div class="kpi-card kpi-green">
           <div class="kpi-lbl">Total Revenue (Including GST)</div>
@@ -1826,6 +1942,14 @@
         <div class="kpi-card">
           <div class="kpi-lbl">Purchase</div>
           <div class="kpi-val" id="o4-purchase">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-spoilage">
+          <div class="kpi-lbl">Spoilage</div>
+          <div class="kpi-val" id="o4-spoilage">₹0.00</div>
+        </div>
+        <div class="kpi-card kpi-spoilage">
+          <div class="kpi-lbl">Expenses</div>
+          <div class="kpi-val" id="o4-expenses">₹0.00</div>
         </div>
         <div class="kpi-card" id="o4-profit-loss-card">
           <div class="kpi-lbl">Owner Profit / Loss</div>
@@ -1949,9 +2073,10 @@
 
         <div class="report-summary-cards" id="owner-report-summary-cards">
           <div class="kpi-card"><div class="kpi-lbl">Total Bookings</div><div class="kpi-val" id="r-bookings">0</div></div>
-          <div class="kpi-card"><div class="kpi-lbl">Total Orders</div><div class="kpi-val" id="r-orders">0</div></div>
-          <div class="kpi-card kpi-premium"><div class="kpi-lbl">Total Revenue (Including GST)</div><div class="kpi-val" id="r-revenue">₹0.00</div></div>
+          <div class="kpi-card"><div class="kpi-lbl">Total Revenue (Excluding GST)</div><div class="kpi-val" id="r-revenue-excl">₹0.00</div></div>
           <div class="kpi-card kpi-gst"><div class="kpi-lbl">GST Collected</div><div class="kpi-val" id="r-gst">₹0.00</div></div>
+          <div class="kpi-card"><div class="kpi-lbl">Parcel Charges</div><div class="kpi-val" id="r-parcel">₹0.00</div></div>
+          <div class="kpi-card kpi-premium"><div class="kpi-lbl">Total Revenue (Including GST)</div><div class="kpi-val" id="r-revenue">₹0.00</div></div>
           <div class="kpi-card kpi-commission"><div class="kpi-lbl">Commission (10%)</div><div class="kpi-val" id="r-commission">₹0.00</div></div>
           <div class="kpi-card kpi-net"><div class="kpi-lbl">Net Revenue (Total Revenue − Commission 10%)</div><div class="kpi-val" id="r-net">₹0.00</div></div>
         </div>
@@ -1963,7 +2088,7 @@
         </div>
 
         <div class="report-table-toolbar">
-          <input type="search" id="owner-report-search" placeholder="Search Guest Name, Booking ID…">
+          <input type="search" id="owner-report-search" placeholder="Search Guest Name, Invoice No…">
           <span class="report-count" id="owner-report-count"></span>
         </div>
 
@@ -1971,18 +2096,18 @@
           <table class="report-table" id="owner-report-table">
             <thead>
               <tr>
-                <th data-col="date">Booking Date</th>
-                <th data-col="id">Booking ID</th>
+                <th data-col="date">Date</th>
+                <th data-col="invoiceNo">Invoice No.</th>
                 <th data-col="customer">Guest Name</th>
-                <th data-col="tariff" class="num">Basic</th>
-                <th data-col="gstAmt" class="num">GST Amount</th>
+                <th data-col="subtotal" class="num">Subtotal</th>
+                <th data-col="gst" class="num">GST</th>
+                <th data-col="parcel" class="num">Parcel Charges</th>
+                <th data-col="discount" class="num">Discount</th>
                 <th data-col="total" class="num">Total Amount</th>
-                <th data-col="commission" class="num">Commission (10%)</th>
-                <th data-col="amountReceived" class="num">Amount Received</th>
-                <th data-col="balanceReceivable" class="num">Balance Receivable</th>
-                <th data-col="net" class="num">Net Revenue</th>
-                <th data-col="paymentStatus">Payment Status</th>
-                <th data-col="bookingStatus">Booking Status</th>
+                <th data-col="salesType">Sales Type</th>
+                <th data-col="status">Status</th>
+                <th data-col="paymentMethod">Payment Method</th>
+                <th data-col="waiter">Waiter</th>
               </tr>
             </thead>
             <tbody id="owner-report-table-body"></tbody>
@@ -1997,51 +2122,90 @@
 
 <div class="operational-view">
 
-<section class="admin-fin-panel admin-only-block" id="admin-fin-panel">
+<section class="admin-fin-panel admin-manager-only-block" id="admin-fin-panel">
   <div class="admin-fin-heading">
-    <h2>Admin Financial Summary</h2>
+    <h2>Financial Summary</h2>
   </div>
-  <div class="owner-row row-1">
-    <div class="kpi-card">
-      <div class="kpi-lbl">Total Bookings</div>
-      <div class="kpi-val" id="a-bookings">0</div>
+  <div class="owner-financial-grid">
+    <div class="ofg-col">
+      <div class="kpi-card" id="a-order-taken-card">
+        <div class="kpi-lbl">Order Taken</div>
+        <div class="kpi-val" id="a-order-taken">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-lbl">Total Closed Bookings</div>
+        <div class="kpi-val" id="a-bookings">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-lbl">Today's Revenue</div>
+        <div class="kpi-val" id="a-today">₹0.00</div>
+      </div>
+      <div class="kpi-card kpi-balance">
+        <div class="kpi-lbl">Pending Payment</div>
+        <div class="kpi-val" id="a-pending-payment">₹0.00</div>
+      </div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-lbl">Today's Revenue</div>
-      <div class="kpi-val" id="a-today">₹0.00</div>
+
+    <div class="ofg-col">
+      <div class="kpi-card">
+        <div class="kpi-lbl">Total Revenue (Excluding GST)</div>
+        <div class="kpi-val" id="a-revenue-excl">₹0.00</div>
+      </div>
+      <div class="kpi-card kpi-gst">
+        <div class="kpi-lbl">GST Collected</div>
+        <div class="kpi-val" id="a-gst">₹0.00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-lbl">Parcel Charges</div>
+        <div class="kpi-val" id="a-parcel">₹0.00</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-lbl">Total Revenue (Including GST)</div>
+        <div class="kpi-val" id="a-revenue-incl-c2">₹0.00</div>
+      </div>
     </div>
-    <div class="kpi-card kpi-premium">
-      <div class="kpi-lbl">Total Revenue (Including GST)</div>
-      <div class="kpi-val" id="a-revenue">₹0.00</div>
+
+    <div class="ofg-col">
+      <div class="kpi-card kpi-premium">
+        <div class="kpi-lbl">Total Revenue (Including GST)</div>
+        <div class="kpi-val" id="a-revenue">₹0.00</div>
+      </div>
+      <div class="kpi-card kpi-commission">
+        <div class="kpi-lbl">Commission (10%)</div>
+        <div class="kpi-val" id="a-commission">₹0.00</div>
+      </div>
+      <div class="kpi-card kpi-net">
+        <div class="kpi-lbl">Net Revenue (Total Revenue − Commission 10%)</div>
+        <div class="kpi-val" id="a-net">₹0.00</div>
+      </div>
     </div>
-    <div class="kpi-card kpi-gst">
-      <div class="kpi-lbl">GST Collected</div>
-      <div class="kpi-val" id="a-gst">₹0.00</div>
-    </div>
-  </div>
-  <div class="owner-row row-2">
-    <div class="kpi-card kpi-commission">
-      <div class="kpi-lbl">Commission (10%)</div>
-      <div class="kpi-val" id="a-commission">₹0.00</div>
-    </div>
-    <div class="kpi-card kpi-net">
-      <div class="kpi-lbl">Net Revenue (Total Revenue − Commission 10%)</div>
-      <div class="kpi-val" id="a-net">₹0.00</div>
-    </div>
-    <div class="kpi-card kpi-received">
-      <div class="kpi-lbl">Amount Received</div>
-      <div class="kpi-val" id="a-received">₹0.00</div>
-    </div>
-    <div class="kpi-card kpi-balance">
-      <div class="kpi-lbl">Balance Receivable</div>
-      <div class="kpi-val" id="a-balance">₹0.00</div>
+
+    <!-- Both Admin and Manager now see the same Column 4 here: Net Revenue,
+         Amount Received, Balance Receivable. Purchase/Spoilage/Expenses/
+         Owner Profit-Loss remain exclusive to the Owner Dashboard. -->
+    <div class="ofg-col">
+      <div class="kpi-card kpi-net">
+        <div class="kpi-lbl">Net Revenue (Total Revenue − Commission 10%)</div>
+        <div class="kpi-val" id="a-net-c4">₹0.00</div>
+      </div>
+      <div class="kpi-card kpi-received">
+        <div class="kpi-lbl">Amount Received</div>
+        <div class="kpi-val" id="a-received">₹0.00</div>
+      </div>
+      <div class="kpi-card kpi-balance">
+        <div class="kpi-lbl">Balance Receivable</div>
+        <div class="kpi-val" id="a-balance">₹0.00</div>
+      </div>
     </div>
   </div>
 
-  <div class="payment-history-panel">
+  <div class="payment-history-panel admin-only-block">
     <div class="payment-history-heading">
       <h3>Payment History</h3>
-      <button type="button" class="btn-stamp" id="payment-export-btn">Export to Excel</button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn-stamp" id="payment-received-btn">Payment Received</button>
+        <button type="button" class="btn-stamp" id="payment-export-btn">Export to Excel</button>
+      </div>
     </div>
     <div class="payment-history-table-wrap">
       <table class="payment-history-table">
@@ -2102,17 +2266,28 @@
   <div class="payment-history-panel" style="margin:24px 6vw 0;">
     <div class="payment-history-heading">
       <h3>Purchase Module</h3>
-      <button type="button" class="btn-stamp" id="purchase-export-btn">Export to Excel</button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn-stamp can-manage-kot" id="purchase-entry-btn">Purchase Entry</button>
+        <button type="button" class="btn-stamp" id="purchase-export-btn">Export to Excel</button>
+      </div>
     </div>
 
-    <div class="report-summary-cards" style="margin-bottom:18px;">
-      <div class="kpi-card kpi-premium">
-        <div class="kpi-lbl">Total Purchases</div>
-        <div class="kpi-val" id="purchase-total">₹0.00</div>
-      </div>
+    <div class="purchase-summary-cards">
       <div class="kpi-card">
         <div class="kpi-lbl">Total Entries</div>
         <div class="kpi-val" id="purchase-count">0</div>
+      </div>
+      <div class="kpi-card kpi-premium">
+        <div class="kpi-lbl">Total Purchase</div>
+        <div class="kpi-val" id="purchase-total">₹0.00</div>
+      </div>
+      <div class="kpi-card kpi-spoilage">
+        <div class="kpi-lbl">Total Spoilage</div>
+        <div class="kpi-val" id="purchase-spoilage-total">₹0.00</div>
+      </div>
+      <div class="kpi-card kpi-net">
+        <div class="kpi-lbl">Net Purchase (Total Purchase − Total Spoilage)</div>
+        <div class="kpi-val" id="purchase-net-total">₹0.00</div>
       </div>
     </div>
 
@@ -2138,6 +2313,148 @@
     </div>
   </div>
 </section>
+
+<section class="admin-manager-only-block" id="spoilage-panel">
+  <div class="payment-history-panel" style="margin:24px 6vw 0;">
+    <div class="payment-history-heading">
+      <h3>Spoilage Entry <span class="optional-tag">(independent of Purchase Entries)</span></h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn-stamp" id="spoilage-entry-btn">Spoilage Entry</button>
+        <button type="button" class="btn-stamp" id="spoilage-export-btn">Export to Excel</button>
+      </div>
+    </div>
+
+    <p style="font-size:11.5px; color:#8b7f66; margin:-6px 0 14px;">
+      Spoilage entries are consolidated by the office/admin from spoilage reports received from the properties. They are entered manually and are not linked to any particular purchase entry.
+    </p>
+
+    <div class="payment-history-table-wrap">
+      <table class="payment-history-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Item / Description</th>
+            <th>Quantity</th>
+            <th>Amount</th>
+            <th>Reason / Remarks</th>
+            <th>Entered By</th>
+            <th>Entry Date &amp; Time</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="spoilage-history-body"></tbody>
+      </table>
+      <div class="payment-history-empty" id="spoilage-history-empty">No spoilage entries recorded yet.</div>
+    </div>
+  </div>
+</section>
+
+<div class="modal-overlay hidden" id="spoilage-modal-overlay">
+  <div class="modal-card">
+    <h2 id="spoilage-modal-title">Spoilage Entry</h2>
+    <form id="spoilage-form" autocomplete="off">
+      <input type="hidden" id="spo-id" value="">
+      <div class="field">
+        <label for="spo-date">Date</label>
+        <input type="date" id="spo-date" required>
+      </div>
+      <div class="field">
+        <label for="spo-item">Item / Description</label>
+        <input type="text" id="spo-item" required>
+      </div>
+      <div class="field">
+        <label for="spo-qty">Quantity</label>
+        <input type="text" id="spo-qty" placeholder="e.g. 5 kg, 2 pcs">
+      </div>
+      <div class="field">
+        <label for="spo-amount">Amount</label>
+        <div class="currency-field">
+          <span class="currency-prefix">₹</span>
+          <input type="number" id="spo-amount" min="0" step="0.01" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="spo-remarks">Reason / Remarks <span class="optional-tag">(optional)</span></label>
+        <textarea id="spo-remarks" rows="2" placeholder="Reason for spoilage"></textarea>
+      </div>
+      <div class="modal-error" id="spoilage-form-error"></div>
+      <div class="pad-actions">
+        <button type="submit" class="btn-primary" id="spoilage-save-btn">Save</button>
+        <button type="button" class="btn-ghost" id="spoilage-cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<section class="admin-manager-only-block" id="expenses-panel">
+  <div class="payment-history-panel" style="margin:24px 6vw 0;">
+    <div class="payment-history-heading">
+      <h3>Expenses <span class="optional-tag">(stored separately from Purchase &amp; Spoilage)</span></h3>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span class="expense-pending-banner">Pending Payment: <span id="expense-pending-total">₹0.00</span></span>
+        <button type="button" class="btn-stamp" id="expense-entry-btn">Expense Entry</button>
+        <button type="button" class="btn-stamp" id="expense-export-btn">Export to Excel</button>
+      </div>
+    </div>
+
+    <div class="payment-history-table-wrap">
+      <table class="payment-history-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Particular</th>
+            <th class="num">Amount</th>
+            <th>Remarks</th>
+            <th>Payment Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="expense-history-body"></tbody>
+      </table>
+      <div class="payment-history-empty" id="expense-history-empty">No expenses recorded yet.</div>
+    </div>
+  </div>
+</section>
+
+<div class="modal-overlay hidden" id="expense-modal-overlay">
+  <div class="modal-card">
+    <h2 id="expense-modal-title">Expense Entry</h2>
+    <form id="expense-form" autocomplete="off">
+      <input type="hidden" id="exp-id" value="">
+      <div class="field">
+        <label for="exp-date">Date</label>
+        <input type="date" id="exp-date" required>
+      </div>
+      <div class="field">
+        <label for="exp-particular">Particular</label>
+        <input type="text" id="exp-particular" placeholder="e.g. Electricity Bill" required>
+      </div>
+      <div class="field">
+        <label for="exp-amount">Amount</label>
+        <div class="currency-field">
+          <span class="currency-prefix">₹</span>
+          <input type="number" id="exp-amount" min="0" step="0.01" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="exp-remarks">Remarks <span class="optional-tag">(optional)</span></label>
+        <textarea id="exp-remarks" rows="2" placeholder="Additional notes"></textarea>
+      </div>
+      <div class="field">
+        <label for="exp-status">Payment Status</label>
+        <select id="exp-status">
+          <option>Paid</option>
+          <option>Pending</option>
+        </select>
+      </div>
+      <div class="modal-error" id="expense-form-error"></div>
+      <div class="pad-actions">
+        <button type="submit" class="btn-primary" id="expense-save-btn">Save</button>
+        <button type="button" class="btn-ghost" id="expense-cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <section class="kot-history-block">
   <div class="payment-history-panel" style="margin:24px 6vw 0;">
@@ -2187,30 +2504,18 @@
 </section>
 
 <section class="metrics">
-  <div class="stub hide-for-staff">
-    <div><div class="num" id="m-total">0</div><div class="lbl">Total Orders</div></div>
-  </div>
   <div class="stub staff-only-stub">
     <div><div class="num" id="m-mine">0</div><div class="lbl">My Tickets Generated</div></div>
   </div>
-  <div class="stub hide-for-staff">
-    <div><div class="num" id="m-revenue">₹0.00</div><div class="lbl">Total Revenue (Including GST)</div></div>
+  <div class="stub hide-for-admin-manager" id="m-open-stub">
+    <div><div class="num" id="m-open">0</div><div class="lbl">Order Taken</div></div>
   </div>
-  <div class="stub">
-    <div><div class="num" id="m-open">0</div><div class="lbl">Pending Tickets</div></div>
-  </div>
-  <div class="stub hide-for-staff">
-    <div><div class="num" id="m-today">₹0.00</div><div class="lbl">Today's Revenue</div></div>
-  </div>
-  <div class="stub hide-for-staff">
-    <div><div class="num" id="m-gst">₹0.00</div><div class="lbl">GST Collected</div></div>
-  </div>
-  <div class="stub hide-for-staff">
+  <div class="stub hide-for-staff hide-for-admin-manager">
     <div><div class="num" id="m-parcel">₹0.00</div><div class="lbl">Parcel Charges</div></div>
   </div>
 </section>
 
-<div class="boards-row hide-for-staff">
+<div class="boards-row hide-for-staff hide-for-admin-manager">
 <section class="waiter-board">
   <h3>Orders by Waiter</h3>
   <div class="waiter-list" id="waiter-list"></div>
@@ -2341,8 +2646,6 @@
       <input type="search" id="search" placeholder="Search by customer, table, or order ID...">
       <div style="display:flex; align-items:center; gap:14px;">
         <span class="save-indicator" id="save-indicator">Saved</span>
-        <button type="button" class="btn-stamp can-manage-kot" id="purchase-entry-btn">Purchase Entry</button>
-        <button type="button" class="btn-stamp admin-only" id="payment-received-btn">Payment Received</button>
         <button type="button" class="btn-stamp admin-only" id="export-btn">Export to Excel</button>
         <button type="button" class="btn-stamp danger admin-only" id="reset-data-btn">Reset</button>
       </div>
@@ -2459,6 +2762,8 @@
       <label class="reset-check-row"><input type="checkbox" data-reset-key="kot"> KOT History</label>
       <label class="reset-check-row"><input type="checkbox" data-reset-key="invoice"> Invoice History</label>
       <label class="reset-check-row"><input type="checkbox" data-reset-key="purchases"> Purchase Entries</label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="spoilage"> Spoilage Entries</label>
+      <label class="reset-check-row"><input type="checkbox" data-reset-key="expenses"> Expense Entries</label>
       <label class="reset-check-row"><input type="checkbox" data-reset-key="deletedOrders"> Deleted Order History</label>
       <label class="reset-check-row"><input type="checkbox" data-reset-key="editHistory"> Order Edit History</label>
       <label class="reset-check-row"><input type="checkbox" data-reset-key="monthlyReports"> Monthly Reports <span class="optional-tag">(generated live from Sales/Tickets — clearing that clears reports too)</span></label>
@@ -2579,7 +2884,7 @@
     'manager': 'manager456'
   };
   var OWNER_USERS = {
-    'owner': 'owner786'
+    'owner': 'owner7866'
   };
   var STAFF_USERS = {
     'Bonomoli': 'bonomoli123',
@@ -2667,6 +2972,15 @@
     loginScreen.classList.add('hidden');
     appContent.style.display = '';
     if(window.applyWaiterLockIfStaff) window.applyWaiterLockIfStaff();
+    // Wipe any in-progress, unsaved draft left over from whoever was using
+    // the order form before this session started. This is the core of
+    // Staff/Manager isolation: each login always gets its own fresh,
+    // independent order form, and no unsaved entry ever crosses from one
+    // user's working session into another's.
+    if(window.resetOrderForm) window.resetOrderForm();
+    // Re-render the spoilage table too, since its Delete button is
+    // role-conditional (Admin only) and must reflect whoever just logged in.
+    if(window.renderSpoilage) window.renderSpoilage();
     // Re-render the ticket rail immediately for the new session — critical
     // for Staff isolation: without this, the rail keeps showing whatever
     // the PREVIOUS session last rendered (potentially another staff
@@ -2682,6 +2996,12 @@
     var session = { role: role, user: user };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
     applySession(session);
+    // Motivational greeting for Staff & Manager only, and only on an actual
+    // fresh login — restoreSession() (page refresh) calls applySession()
+    // directly and never goes through here, so this shows once per login.
+    if((role === 'staff' || role === 'manager') && window.showWelcomeMessage){
+      window.showWelcomeMessage(user);
+    }
   }
 
   loginForm.addEventListener('submit', function(e){
@@ -2700,6 +3020,10 @@
 
   logoutBtn.addEventListener('click', function(){
     sessionStorage.removeItem(SESSION_KEY);
+    // Defense-in-depth: clear any unsaved draft right away on logout too,
+    // not just on the next login, so nothing from this session lingers in
+    // the form.
+    if(window.resetOrderForm) window.resetOrderForm();
     loginScreen.classList.remove('hidden');
     appContent.style.display = 'none';
     loginPass.value = '';
@@ -3240,6 +3564,31 @@
     card.querySelector('.alert-dismiss').addEventListener('click', remove);
     setTimeout(remove, 8000);
   }
+
+  // Post-login motivational greeting for Staff & Manager — exposed on
+  // window so the login/session script (a separate top-level IIFE that
+  // runs before this one) can trigger it right after a fresh sign-in.
+  // Only called from startSession() (an actual login submit), never from
+  // restoreSession() on page refresh, so it shows once per login.
+  function showWelcomeMessage(name){
+    const box = $('#alerts');
+    if(!box) return;
+    const card = document.createElement('div');
+    card.className = 'alert-card alert-welcome';
+    card.innerHTML = `
+      <div class="alert-head">👋 Welcome</div>
+      <div class="alert-body">
+        Welcome ${escapeHtml(name)}! Work together, serve better, and make every guest experience memorable.
+      </div>
+      <button type="button" class="alert-dismiss" aria-label="Dismiss">&times;</button>
+    `;
+    box.appendChild(card);
+
+    const remove = () => { card.classList.add('leaving'); setTimeout(()=>card.remove(), 250); };
+    card.querySelector('.alert-dismiss').addEventListener('click', remove);
+    setTimeout(remove, 8000);
+  }
+  window.showWelcomeMessage = showWelcomeMessage;
 
   function playChime(){
     try{
@@ -4049,23 +4398,66 @@
       });
     }
 
+    // ------------------------------------------------------------
+    // Financial data is sourced ONLY from Completed, invoiced tickets.
+    // Order Tickets are operational records; an order only becomes a
+    // financial transaction (an "invoice") once its status is Completed
+    // and it has been assigned an invoice number (assignInvoiceNumberIfNeeded
+    // does this at the moment a ticket is saved/marked Completed). Tickets
+    // that are Pending, Order Taken, In Progress, Cancelled, or Refunded —
+    // or that get changed away from Completed later — are excluded here
+    // and therefore never reach Total Revenue, GST, Parcel Charges,
+    // Commission, Net Revenue, Owner Dashboard, or Monthly Reports.
+    // Since this filter is re-applied fresh on every render() and each
+    // order is summed at most once, editing a completed invoice's values
+    // (or un-completing it) automatically updates the totals with no
+    // risk of double-counting.
+    const completedOrders = orders.filter(o => o.status === 'Completed' && o.invoiceNumber);
+
     // metrics — the Total/Revenue/GST/Parcel stubs stay restaurant-wide
     // (they're hidden from Staff anyway, and Admin/Manager/Owner need the
-    // full picture below). "Pending Tickets" and the new "My Tickets
-    // Generated" card are scoped to the current Staff member specifically.
-    const total = orders.length;
-    const revenue = orders.reduce((s,o)=>s+Number(o.amount||0),0);
-    const openCount = orders.filter(o=>o.status==='Pending').length;
-    const myOpenCount = scoped.filter(o=>o.status==='Pending').length;
-    const todayRevenue = orders.filter(o=>isToday(o.date)).reduce((s,o)=>s+Number(o.amount||0),0);
-    const gstTotal = orders.reduce((s,o)=>s+Number(o.gst||0),0);
-    const parcelTotal = orders.reduce((s,o)=>s+Number(o.parcelCharge||0),0);
-    $('#m-total').textContent = total;
-    if($('#m-mine')) $('#m-mine').textContent = scoped.length;
-    $('#m-revenue').textContent = fmtMoney(revenue);
-    $('#m-open').textContent = isStaffSession() ? myOpenCount : openCount;
-    $('#m-today').textContent = fmtMoney(todayRevenue);
-    $('#m-gst').textContent = fmtMoney(gstTotal);
+    // full picture below). "Order Taken" and "My Tickets Generated" are
+    // scoped to the current Staff member specifically.
+    const total = completedOrders.length;
+    const revenue = completedOrders.reduce((s,o)=>s+Number(o.amount||0),0);
+    // An order is "active"/under process for as long as it's anything other
+    // than Completed, Cancelled, or Refunded — i.e. Pending, Order Taken,
+    // or In Progress. Deleted orders are already removed from the `orders`
+    // array entirely, so they're excluded automatically too. Used for both
+    // the restaurant-wide Order Taken count (Admin/Manager) and each Staff
+    // member's own Order Taken count below.
+    const isActiveOrderStatus = o => o.status !== 'Completed' && o.status !== 'Cancelled' && o.status !== 'Refunded';
+    const openCount = orders.filter(isActiveOrderStatus).length;
+    const myOpenCount = scoped.filter(isActiveOrderStatus).length;
+    // Pending Payment = total value of tickets still awaiting payment (same
+    // "Pending" ticket status Pending Tickets already counts) — operational
+    // visibility only. These tickets are NOT completed/invoiced, so this
+    // figure is deliberately kept separate from Total Revenue and every
+    // other Financial Summary figure below.
+    const pendingPaymentAmount = orders.filter(o=>o.status==='Pending').reduce((s,o)=>s+Number(o.amount||0),0);
+    // Order Taken (Admin/Manager Financial Summary, Column 1) = every order
+    // still active/under process, combined across every Staff member and
+    // the Manager — never scoped to a single user — and recalculates on
+    // every render(), so it updates the instant any order is taken,
+    // reopened, moved into processing, completed, cancelled, or deleted.
+    const orderTakenCount = openCount;
+    const todayRevenue = completedOrders.filter(o=>isToday(o.date)).reduce((s,o)=>s+Number(o.amount||0),0);
+    const gstTotal = completedOrders.reduce((s,o)=>s+Number(o.gst||0),0);
+    const parcelTotal = completedOrders.reduce((s,o)=>s+Number(o.parcelCharge||0),0);
+    // My Tickets Generated = this Staff member's own completed/invoiced
+    // orders only (the Ticket Generated count comes from the completed
+    // order/invoice, same as everywhere else — not just any order they
+    // ever created), so it only increases once an order is Completed.
+    const myTicketsGenerated = scoped.filter(o => o.status === 'Completed' && o.invoiceNumber).length;
+    if($('#m-mine')) $('#m-mine').textContent = myTicketsGenerated;
+    // "Order Taken" (Staff panel) is scoped to the logged-in Staff member's
+    // own active orders only — Staff A's count never includes Staff B's.
+    const myOrderTakenCount = isStaffSession() ? myOpenCount : openCount;
+    $('#m-open').textContent = myOrderTakenCount;
+    // Golden highlight only while there's an active count — a card reading
+    // "0" stays plain white, not falsely flagged as needing attention.
+    const mOpenStub = $('#m-open-stub');
+    if(mOpenStub) mOpenStub.classList.toggle('stub-order-taken', myOrderTakenCount > 0);
     $('#m-parcel').textContent = fmtMoney(parcelTotal);
 
     // owner dashboard metrics
@@ -4073,29 +4465,48 @@
     const netRevenue = revenue - commission;
     // Payment Received module: Amount Received = sum of all Admin-entered
     // payments (i.e. actual amount received from restaurant sales).
-    // NOTE: the Admin Financial Summary panel below (#a-balance) still uses
-    // the ORIGINAL Balance Receivable formula (Total Revenue − Amount
-    // Received) — only the Owner Dashboard's Balance Receivable changed.
+    // NOTE: the Owner Dashboard's Balance Receivable (#o4-balance) uses Net
+    // Revenue − Amount Received; the plain `balanceReceivable` below (Total
+    // Revenue − Amount Received) is currently unused but kept for reference.
     const amountReceived = payments.reduce((s,p)=>s+Number(p.amount||0),0);
     const balanceReceivable = revenue - amountReceived;
     // Owner Dashboard four-column layout — see calculations below:
     //   Total Revenue (Including GST) = Total Revenue (Excluding GST) + GST
+    //     Collected + Parcel Charges (Parcel is now its own Column 2 line
+    //     item, so "Excluding GST" nets it out too — this re-derives from
+    //     `revenue`/`parcelTotal` every render, so it updates automatically).
     //   Commission = 10% × Total Revenue (Including GST)
     //   Net Revenue = Total Revenue (Including GST) − Commission
     //   Balance Receivable = Net Revenue − Amount Received from Restaurant Sale
     //   Owner Profit/Loss = Net Revenue − GST − Purchase (from the Purchase
-    //     Module); positive = Profit, negative = Loss.
-    const revenueExclGst = revenue - gstTotal;
+    //     Module) − Spoilage − Expenses (both from their own separate
+    //     Admin/Manager modules); positive = Profit, negative = Loss.
+    //     Expenses includes ALL recorded expenses (Paid + Pending) — there's
+    //     no existing precedent in this dashboard for excluding unpaid
+    //     amounts from a cost total (Purchase/Spoilage aren't split that
+    //     way either), so nothing incurred is left out of the P&L.
+    const revenueExclGst = revenue - gstTotal - parcelTotal;
     const ownerBalanceReceivable = netRevenue - amountReceived;
     const purchaseTotal = purchases.reduce((s,p)=>s+Number(p.amount||0),0);
-    const ownerProfitLoss = netRevenue - gstTotal - purchaseTotal;
+    const spoilageTotal = spoilage.reduce((s,sp)=>s+Number(sp.amount||0),0);
+    const expensesTotal = expenses.reduce((s,ex)=>s+Number(ex.amount||0),0);
+    const ownerProfitLoss = netRevenue - gstTotal - purchaseTotal - spoilageTotal - expensesTotal;
+    // Admin/Manager Financial Summary — Column 2 formula (per spec):
+    //   Total Revenue (Including GST) = Total Revenue (Excluding GST) + GST
+    //   Collected + Parcel Charges. So here "Excluding GST" also nets out
+    //   Parcel Charges, since Parcel is shown as its own line item; this
+    //   keeps in sync automatically whenever any order's parcel charge or
+    //   revenue changes, since it's re-derived from `revenue` every render.
+    const aRevenueExclGst = revenue - gstTotal - parcelTotal;
 
-    // Column 1
+    // Column 1: Total Closed Booking, Today's Revenue, Pending Payment
     if($('#o4-bookings')) $('#o4-bookings').textContent = total;
     if($('#o4-today')) $('#o4-today').textContent = fmtMoney(todayRevenue);
+    if($('#o4-pending-payment')) $('#o4-pending-payment').textContent = fmtMoney(pendingPaymentAmount);
     // Column 2
     if($('#o4-revenue-excl')) $('#o4-revenue-excl').textContent = fmtMoney(revenueExclGst);
     if($('#o4-gst-c2')) $('#o4-gst-c2').textContent = fmtMoney(gstTotal);
+    if($('#o4-parcel-c2')) $('#o4-parcel-c2').textContent = fmtMoney(parcelTotal);
     if($('#o4-revenue-incl-c2')) $('#o4-revenue-incl-c2').textContent = fmtMoney(revenue);
     // Column 3
     if($('#o4-revenue-incl-c3')) $('#o4-revenue-incl-c3').textContent = fmtMoney(revenue);
@@ -4103,37 +4514,62 @@
     if($('#o4-net-c3')) $('#o4-net-c3').textContent = fmtMoney(netRevenue);
     if($('#o4-received')) $('#o4-received').textContent = fmtMoney(amountReceived);
     if($('#o4-balance')) $('#o4-balance').textContent = fmtMoney(ownerBalanceReceivable);
-    // Column 4
+    // Column 4 (Owner Dashboard only — Net Revenue, GST, Purchase, Spoilage,
+    // Expenses, Owner Profit/Loss). The Admin/Manager Financial Summary's
+    // own Column 4 (Net Revenue, Amount Received, Balance Receivable) is
+    // separate and untouched by this.
     if($('#o4-net-c4')) $('#o4-net-c4').textContent = fmtMoney(netRevenue);
     if($('#o4-gst-c4')) $('#o4-gst-c4').textContent = fmtMoney(gstTotal);
     if($('#o4-purchase')) $('#o4-purchase').textContent = fmtMoney(purchaseTotal);
-    const profitLossVal = $('#o4-profit-loss');
-    const profitLossCard = $('#o4-profit-loss-card');
-    if(profitLossVal){
-      // 🟢 ↑ Profit / 🔴 ↓ Loss / 🟡 → exactly zero (no profit, no loss) —
-      // updates automatically since this whole block re-runs on every
-      // render(), which already fires whenever revenue, GST, commission,
-      // amount received, or purchases change.
+    if($('#o4-spoilage')) $('#o4-spoilage').textContent = fmtMoney(spoilageTotal);
+    if($('#o4-expenses')) $('#o4-expenses').textContent = fmtMoney(expensesTotal);
+    // 🟢 ↑ Profit / 🔴 ↓ Loss / 🟡 → exactly zero (no profit, no loss).
+    // Owner Profit/Loss = Net Revenue − GST − Purchase − Spoilage − Expenses.
+    // Updates automatically since this whole block re-runs on every
+    // render(), which already fires whenever revenue, GST, purchases,
+    // spoilage, or expenses change.
+    function paintProfitLoss(valId, cardId){
+      const valEl = $(valId);
+      const cardEl = $(cardId);
+      if(!valEl) return;
       let icon, word, cls;
       if(ownerProfitLoss > 0){ icon = '🟢 ↑'; word = 'Owner Profit'; cls = 'kpi-profit'; }
       else if(ownerProfitLoss < 0){ icon = '🔴 ↓'; word = 'Owner Loss'; cls = 'kpi-loss'; }
       else { icon = '🟡 →'; word = 'No Profit / No Loss'; cls = 'kpi-neutral'; }
-      profitLossVal.textContent = icon + ' ' + word + ': ' + fmtMoney(Math.abs(ownerProfitLoss));
-      if(profitLossCard){
-        profitLossCard.classList.remove('kpi-profit', 'kpi-loss', 'kpi-neutral');
-        profitLossCard.classList.add(cls);
+      valEl.textContent = icon + ' ' + word + ': ' + fmtMoney(Math.abs(ownerProfitLoss));
+      if(cardEl){
+        cardEl.classList.remove('kpi-profit', 'kpi-loss', 'kpi-neutral');
+        cardEl.classList.add(cls);
       }
     }
+    paintProfitLoss('#o4-profit-loss', '#o4-profit-loss-card');
 
-    // Admin Financial Summary panel
+    // Financial Summary panel (Admin & Manager) — 4-column layout:
+    //   Col 1: Order Taken, Total Closed Bookings, Today's Revenue, Pending Payment
+    //   Col 2: Total Revenue (Excl GST), GST Collected, Parcel Charges,
+    //          Total Revenue (Incl GST)
+    //   Col 3: Total Revenue (Incl GST), Commission 10%, Net Revenue
+    //   Col 4: Net Revenue, Amount Received, Balance Receivable
+    if($('#a-order-taken')) $('#a-order-taken').textContent = orderTakenCount;
+    // Golden highlight only while there's an active count — a card reading
+    // "0" stays plain white, not falsely flagged as needing attention.
+    const aOrderTakenCard = $('#a-order-taken-card');
+    if(aOrderTakenCard) aOrderTakenCard.classList.toggle('kpi-order-taken', orderTakenCount > 0);
     if($('#a-bookings')) $('#a-bookings').textContent = total;
     if($('#a-today')) $('#a-today').textContent = fmtMoney(todayRevenue);
-    if($('#a-revenue')) $('#a-revenue').textContent = fmtMoney(revenue);
+    if($('#a-pending-payment')) $('#a-pending-payment').textContent = fmtMoney(pendingPaymentAmount);
+    if($('#a-revenue-excl')) $('#a-revenue-excl').textContent = fmtMoney(aRevenueExclGst);
     if($('#a-gst')) $('#a-gst').textContent = fmtMoney(gstTotal);
+    if($('#a-parcel')) $('#a-parcel').textContent = fmtMoney(parcelTotal);
+    if($('#a-revenue-incl-c2')) $('#a-revenue-incl-c2').textContent = fmtMoney(revenue);
+    if($('#a-revenue')) $('#a-revenue').textContent = fmtMoney(revenue);
     if($('#a-commission')) $('#a-commission').textContent = fmtMoney(commission);
     if($('#a-net')) $('#a-net').textContent = fmtMoney(netRevenue);
+    // Column 4 (Admin & Manager, both roles): Net Revenue, Amount Received,
+    // Balance Receivable = Net Revenue − Amount Received.
+    if($('#a-net-c4')) $('#a-net-c4').textContent = fmtMoney(netRevenue);
     if($('#a-received')) $('#a-received').textContent = fmtMoney(amountReceived);
-    if($('#a-balance')) $('#a-balance').textContent = fmtMoney(balanceReceivable);
+    if($('#a-balance')) $('#a-balance').textContent = fmtMoney(ownerBalanceReceivable);
 
     // waiter breakdown
     const waiterCounts = {};
@@ -4569,6 +5005,11 @@
     applyWaiterLockIfStaff();
     resetItemRows();
   }
+  // Exposed so the login/session script block (a separate top-level IIFE)
+  // can wipe any in-progress, unsaved draft the instant a session starts or
+  // ends — this is what keeps one staff member's half-typed ticket from
+  // ever being visible in another staff member's or the Manager's form.
+  window.resetOrderForm = resetForm;
 
   form.addEventListener('submit', function(e){
     e.preventDefault();
@@ -5214,6 +5655,21 @@
     const total = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
     if(totalEl) totalEl.textContent = fmtMoney(total);
     if(countEl) countEl.textContent = purchases.length;
+    refreshPurchaseSummary();
+  }
+
+  // Total Purchase, Total Spoilage and Net Purchase are shown together in
+  // the Purchase Module's 4-card summary row, so both renderPurchases() and
+  // renderSpoilage() call this after updating their own data — whichever
+  // one runs, Net Purchase always reflects the latest of both.
+  function refreshPurchaseSummary(){
+    const totalPurchase = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    const totalSpoilage = (typeof spoilage !== 'undefined' ? spoilage : []).reduce((s, sp) => s + (Number(sp.amount) || 0), 0);
+    const netPurchase = totalPurchase - totalSpoilage;
+    const spoilageEl = $('#purchase-spoilage-total');
+    const netEl = $('#purchase-net-total');
+    if(spoilageEl) spoilageEl.textContent = fmtMoney(totalSpoilage);
+    if(netEl) netEl.textContent = fmtMoney(netPurchase);
   }
 
   (function(){
@@ -5404,6 +5860,495 @@
           const wb = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(wb, ws, 'Purchases');
           const filename = 'Purchase_History_' + new Date().toISOString().slice(0,10) + '.xlsx';
+          XLSX.writeFile(wb, filename);
+        }catch(err){
+          alert('Export failed: ' + err.message);
+        }
+      });
+    }
+  })();
+
+  // ============================================================
+  //  SPOILAGE MODULE (Admin + Manager) — kept fully independent of
+  //  Purchase Entries. Entries are consolidated manually by the
+  //  office/admin from spoilage reports received from the properties.
+  //  Admin can create/edit/delete; Manager can create/edit only (no
+  //  delete access to spoilage entries).
+  // ============================================================
+  const SPOILAGE_STORAGE_KEY = 'bhli_spoilage_v1';
+  let spoilage = [];
+
+  function loadSpoilage(){
+    try{
+      const raw = localStorage.getItem(SPOILAGE_STORAGE_KEY);
+      spoilage = raw ? JSON.parse(raw) : [];
+    }catch(e){
+      spoilage = [];
+    }
+    renderSpoilage();
+  }
+
+  function saveSpoilage(){
+    try{
+      localStorage.setItem(SPOILAGE_STORAGE_KEY, JSON.stringify(spoilage));
+    }catch(e){
+      alert('Failed to save spoilage record: ' + e.message);
+    }
+  }
+
+  function renderSpoilage(){
+    const tbody = $('#spoilage-history-body');
+    const empty = $('#spoilage-history-empty');
+    if(!tbody) return;
+
+    // Manager gets Edit only; Admin gets Edit + Delete.
+    const canDelete = document.body.classList.contains('role-admin');
+
+    const list = spoilage.slice(); // newest-first order already maintained on save
+    tbody.innerHTML = list.map(sp => `
+      <tr>
+        <td>${new Date(sp.date).toLocaleDateString()}</td>
+        <td>${escapeHtml(sp.item)}</td>
+        <td>${escapeHtml(sp.qty || '—')}</td>
+        <td class="p-amount">${fmtMoney(sp.amount)}</td>
+        <td>${escapeHtml(sp.remarks || '—')}</td>
+        <td>${escapeHtml(sp.enteredBy || '—')}</td>
+        <td>${fmtDateTime(sp.entryTime)}</td>
+        <td class="p-actions">
+          <button type="button" class="icon-btn" data-edit-spoilage="${sp.id}">Edit</button>
+          ${canDelete ? `<button type="button" class="icon-btn danger" data-delete-spoilage="${sp.id}">Delete</button>` : ''}
+        </td>
+      </tr>`).join('');
+    if(empty) empty.style.display = list.length ? 'none' : 'block';
+
+    refreshPurchaseSummary();
+  }
+  // Exposed so the login/session script can re-render the spoilage table
+  // on every login — the Delete button is role-conditional (Admin only),
+  // so switching sessions must recompute it for the new role.
+  window.renderSpoilage = renderSpoilage;
+
+  (function(){
+    const openBtn = $('#spoilage-entry-btn');
+    const overlay = $('#spoilage-modal-overlay');
+    const modalTitle = $('#spoilage-modal-title');
+    const spoForm = $('#spoilage-form');
+    const spoIdField = $('#spo-id');
+    const spoDateField = $('#spo-date');
+    const spoItemField = $('#spo-item');
+    const spoQtyField = $('#spo-qty');
+    const spoAmountField = $('#spo-amount');
+    const spoRemarksField = $('#spo-remarks');
+    const spoError = $('#spoilage-form-error');
+    const cancelBtn = $('#spoilage-cancel-btn');
+    if(!openBtn || !overlay || !spoForm) return;
+
+    let editingSpoilageId = null;
+
+    function isAdminOrManagerSession(){
+      return document.body.classList.contains('role-admin') || document.body.classList.contains('role-manager');
+    }
+    function isAdminSession(){
+      return document.body.classList.contains('role-admin');
+    }
+
+    function openModal(entry){
+      spoError.textContent = '';
+      if(entry){
+        editingSpoilageId = entry.id;
+        spoIdField.value = entry.id;
+        spoDateField.value = (entry.date || '').slice(0, 10) || currentDateValue();
+        spoItemField.value = entry.item || '';
+        spoQtyField.value = entry.qty || '';
+        spoAmountField.value = entry.amount != null ? entry.amount : '';
+        spoRemarksField.value = entry.remarks || '';
+        modalTitle.textContent = 'Edit Spoilage Entry';
+      } else {
+        editingSpoilageId = null;
+        spoForm.reset();
+        spoIdField.value = '';
+        spoDateField.value = currentDateValue();
+        modalTitle.textContent = 'Spoilage Entry';
+      }
+      overlay.classList.remove('hidden');
+      spoItemField.focus();
+    }
+
+    function closeModal(){
+      overlay.classList.add('hidden');
+      editingSpoilageId = null;
+      spoForm.reset();
+      spoError.textContent = '';
+    }
+
+    openBtn.addEventListener('click', function(){
+      if(!isAdminOrManagerSession()){
+        alert('Only Admin or Manager can add spoilage records.');
+        return;
+      }
+      openModal(null);
+    });
+
+    cancelBtn.addEventListener('click', closeModal);
+
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal();
+    });
+
+    spoForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(!isAdminOrManagerSession()){
+        spoError.textContent = 'Only Admin or Manager can save spoilage records.';
+        return;
+      }
+      const dateVal = spoDateField.value;
+      const itemVal = spoItemField.value.trim();
+      const qtyVal = spoQtyField.value.trim();
+      const amountVal = Number(spoAmountField.value);
+      const remarksVal = spoRemarksField.value.trim();
+
+      if(!dateVal || !itemVal || !amountVal || amountVal <= 0){
+        spoError.textContent = 'Date, Item/Description and a valid Amount are required.';
+        return;
+      }
+
+      if(editingSpoilageId){
+        const existing = spoilage.find(sp => sp.id === editingSpoilageId);
+        if(existing){
+          existing.date = dateVal;
+          existing.item = itemVal;
+          existing.qty = qtyVal;
+          existing.amount = amountVal;
+          existing.remarks = remarksVal;
+        }
+      } else {
+        spoilage.unshift({
+          id: genCompactId('SPO'),
+          date: dateVal,
+          item: itemVal,
+          qty: qtyVal,
+          amount: amountVal,
+          remarks: remarksVal,
+          enteredBy: currentSessionUser(),
+          entryTime: new Date().toISOString()
+        });
+      }
+
+      saveSpoilage();
+      renderSpoilage();
+      closeModal();
+    });
+
+    const historyBody = $('#spoilage-history-body');
+    if(historyBody){
+      historyBody.addEventListener('click', function(e){
+        const editId = e.target.getAttribute && e.target.getAttribute('data-edit-spoilage');
+        const delId = e.target.getAttribute && e.target.getAttribute('data-delete-spoilage');
+
+        if(editId){
+          if(!isAdminOrManagerSession()){
+            alert('Only Admin or Manager can edit spoilage records.');
+            return;
+          }
+          const sp = spoilage.find(sp => sp.id === editId);
+          if(sp) openModal(sp);
+        }
+
+        if(delId){
+          // Manager never gets a Delete button rendered, but re-verify here
+          // too so this can't be bypassed via direct DOM manipulation.
+          if(!isAdminSession()){
+            alert('Only Admin can delete spoilage records.');
+            return;
+          }
+          const sp = spoilage.find(sp => sp.id === delId);
+          if(!sp) return;
+          if(confirm('Delete this spoilage entry of ' + fmtMoney(sp.amount) + ' for ' + sp.item + '? This cannot be undone.')){
+            spoilage = spoilage.filter(sp => sp.id !== delId);
+            saveSpoilage();
+            renderSpoilage();
+          }
+        }
+      });
+    }
+
+    const spoilageExportBtn = $('#spoilage-export-btn');
+    if(spoilageExportBtn){
+      spoilageExportBtn.addEventListener('click', function(){
+        if(!isAdminOrManagerSession()){
+          alert('Only Admin or Manager can export spoilage records.');
+          return;
+        }
+        try{
+          const rows = spoilage.map(sp => ({
+            'Date': new Date(sp.date).toLocaleDateString(),
+            'Item / Description': sp.item,
+            'Quantity': sp.qty || '',
+            'Amount': Number(sp.amount || 0),
+            'Reason / Remarks': sp.remarks || '',
+            'Entered By': sp.enteredBy || '',
+            'Entry Date & Time': fmtDateTime(sp.entryTime)
+          }));
+
+          const totalSpoilage = spoilage.reduce((s,sp)=>s+Number(sp.amount||0),0);
+          rows.push({ 'Date':'', 'Item / Description':'', 'Quantity':'', 'Amount':'', 'Reason / Remarks':'', 'Entered By':'', 'Entry Date & Time':'' });
+          rows.push({ 'Date':'', 'Item / Description':'TOTAL', 'Quantity':'', 'Amount': Number(totalSpoilage.toFixed(2)), 'Reason / Remarks':'', 'Entered By':'', 'Entry Date & Time':'' });
+
+          const ws = XLSX.utils.json_to_sheet(rows);
+          ws['!cols'] = [{wch:14},{wch:26},{wch:14},{wch:14},{wch:28},{wch:14},{wch:20}];
+          const range = XLSX.utils.decode_range(ws['!ref']);
+          const currencyFmt = '"₹"#,##,##0.00';
+          for(let r = range.s.r + 1; r <= range.e.r; r++){
+            const amtRef = XLSX.utils.encode_cell({ r, c: 3 });
+            if(ws[amtRef] && ws[amtRef].t === 'n') ws[amtRef].z = currencyFmt;
+          }
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Spoilage');
+          const filename = 'Spoilage_Report_' + new Date().toISOString().slice(0,10) + '.xlsx';
+          XLSX.writeFile(wb, filename);
+        }catch(err){
+          alert('Export failed: ' + err.message);
+        }
+      });
+    }
+  })();
+
+  // ============================================================
+  //  EXPENSES MODULE (Admin + Manager) — stored separately from Purchase
+  //  and Spoilage entries. Payment Status of "Pending" highlights the row
+  //  in red and is included in the live Pending Payment total shown in the
+  //  section header; switching a row back to "Paid" removes it from both.
+  // ============================================================
+  const EXPENSES_STORAGE_KEY = 'bhli_expenses_v1';
+  let expenses = [];
+
+  function loadExpenses(){
+    try{
+      const raw = localStorage.getItem(EXPENSES_STORAGE_KEY);
+      expenses = raw ? JSON.parse(raw) : [];
+    }catch(e){
+      expenses = [];
+    }
+    renderExpenses();
+  }
+
+  function saveExpenses(){
+    try{
+      localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
+    }catch(e){
+      alert('Failed to save expense record: ' + e.message);
+    }
+  }
+
+  function renderExpenses(){
+    const tbody = $('#expense-history-body');
+    const empty = $('#expense-history-empty');
+    const pendingEl = $('#expense-pending-total');
+    if(!tbody) return;
+
+    const list = expenses.slice(); // newest-first order already maintained on save
+    tbody.innerHTML = list.map(ex => `
+      <tr${ex.status === 'Pending' ? ' class="expense-row-pending"' : ''}>
+        <td>${new Date(ex.date).toLocaleDateString()}</td>
+        <td>${escapeHtml(ex.particular)}</td>
+        <td class="p-amount">${fmtMoney(ex.amount)}</td>
+        <td>${escapeHtml(ex.remarks || '—')}</td>
+        <td class="p-status">${escapeHtml(ex.status)}</td>
+        <td class="p-actions">
+          <button type="button" class="icon-btn" data-edit-expense="${ex.id}">Edit</button>
+          <button type="button" class="icon-btn danger" data-delete-expense="${ex.id}">Delete</button>
+        </td>
+      </tr>`).join('');
+    if(empty) empty.style.display = list.length ? 'none' : 'block';
+
+    // Pending Payment = sum of all expenses where Payment Status = Pending.
+    // Recomputed on every render, so it updates automatically whenever an
+    // expense is added, edited, marked paid, or deleted.
+    const pendingTotal = expenses.filter(ex => ex.status === 'Pending').reduce((s, ex) => s + (Number(ex.amount) || 0), 0);
+    if(pendingEl) pendingEl.textContent = fmtMoney(pendingTotal);
+  }
+
+  (function(){
+    const openBtn = $('#expense-entry-btn');
+    const overlay = $('#expense-modal-overlay');
+    const modalTitle = $('#expense-modal-title');
+    const expForm = $('#expense-form');
+    const expIdField = $('#exp-id');
+    const expDateField = $('#exp-date');
+    const expParticularField = $('#exp-particular');
+    const expAmountField = $('#exp-amount');
+    const expRemarksField = $('#exp-remarks');
+    const expStatusField = $('#exp-status');
+    const expError = $('#expense-form-error');
+    const cancelBtn = $('#expense-cancel-btn');
+    if(!openBtn || !overlay || !expForm) return;
+
+    let editingExpenseId = null;
+
+    function isAdminOrManagerSession(){
+      return document.body.classList.contains('role-admin') || document.body.classList.contains('role-manager');
+    }
+
+    function openModal(entry){
+      expError.textContent = '';
+      if(entry){
+        editingExpenseId = entry.id;
+        expIdField.value = entry.id;
+        expDateField.value = (entry.date || '').slice(0, 10) || currentDateValue();
+        expParticularField.value = entry.particular || '';
+        expAmountField.value = entry.amount != null ? entry.amount : '';
+        expRemarksField.value = entry.remarks || '';
+        expStatusField.value = entry.status || 'Paid';
+        modalTitle.textContent = 'Edit Expense';
+      } else {
+        editingExpenseId = null;
+        expForm.reset();
+        expIdField.value = '';
+        expDateField.value = currentDateValue();
+        expStatusField.value = 'Paid';
+        modalTitle.textContent = 'Expense Entry';
+      }
+      overlay.classList.remove('hidden');
+      expParticularField.focus();
+    }
+
+    function closeModal(){
+      overlay.classList.add('hidden');
+      editingExpenseId = null;
+      expForm.reset();
+      expError.textContent = '';
+    }
+
+    openBtn.addEventListener('click', function(){
+      if(!isAdminOrManagerSession()){
+        alert('Only Admin or Manager can add expense records.');
+        return;
+      }
+      openModal(null);
+    });
+
+    cancelBtn.addEventListener('click', closeModal);
+
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal();
+    });
+
+    expForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(!isAdminOrManagerSession()){
+        expError.textContent = 'Only Admin or Manager can save expense records.';
+        return;
+      }
+      const dateVal = expDateField.value;
+      const particularVal = expParticularField.value.trim();
+      const amountVal = Number(expAmountField.value);
+      const remarksVal = expRemarksField.value.trim();
+      const statusVal = expStatusField.value;
+
+      if(!dateVal || !particularVal || !amountVal || amountVal <= 0){
+        expError.textContent = 'Date, Particular and a valid Amount are required.';
+        return;
+      }
+
+      if(editingExpenseId){
+        const existing = expenses.find(ex => ex.id === editingExpenseId);
+        if(existing){
+          existing.date = dateVal;
+          existing.particular = particularVal;
+          existing.amount = amountVal;
+          existing.remarks = remarksVal;
+          existing.status = statusVal;
+        }
+      } else {
+        expenses.unshift({
+          id: genCompactId('EXP'),
+          date: dateVal,
+          particular: particularVal,
+          amount: amountVal,
+          remarks: remarksVal,
+          status: statusVal,
+          enteredBy: currentSessionUser(),
+          entryTime: new Date().toISOString()
+        });
+      }
+
+      saveExpenses();
+      renderExpenses();
+      closeModal();
+    });
+
+    const historyBody = $('#expense-history-body');
+    if(historyBody){
+      historyBody.addEventListener('click', function(e){
+        const editId = e.target.getAttribute && e.target.getAttribute('data-edit-expense');
+        const delId = e.target.getAttribute && e.target.getAttribute('data-delete-expense');
+
+        if(editId){
+          if(!isAdminOrManagerSession()){
+            alert('Only Admin or Manager can edit expense records.');
+            return;
+          }
+          const ex = expenses.find(ex => ex.id === editId);
+          if(ex) openModal(ex);
+        }
+
+        if(delId){
+          if(!isAdminOrManagerSession()){
+            alert('Only Admin or Manager can delete expense records.');
+            return;
+          }
+          const ex = expenses.find(ex => ex.id === delId);
+          if(!ex) return;
+          if(confirm('Delete this expense of ' + fmtMoney(ex.amount) + ' for ' + ex.particular + '? This cannot be undone.')){
+            expenses = expenses.filter(ex => ex.id !== delId);
+            saveExpenses();
+            renderExpenses();
+          }
+        }
+      });
+    }
+
+    const expenseExportBtn = $('#expense-export-btn');
+    if(expenseExportBtn){
+      expenseExportBtn.addEventListener('click', function(){
+        if(!isAdminOrManagerSession()){
+          alert('Only Admin or Manager can export expense records.');
+          return;
+        }
+        try{
+          const rows = expenses.map(ex => ({
+            'Date': new Date(ex.date).toLocaleDateString(),
+            'Particular': ex.particular,
+            'Amount': Number(ex.amount || 0),
+            'Remarks': ex.remarks || '',
+            'Payment Status': ex.status
+          }));
+
+          const totalExpenses = expenses.reduce((s,ex)=>s+Number(ex.amount||0),0);
+          const totalPending = expenses.filter(ex=>ex.status==='Pending').reduce((s,ex)=>s+Number(ex.amount||0),0);
+          rows.push({ 'Date':'', 'Particular':'', 'Amount':'', 'Remarks':'', 'Payment Status':'' });
+          rows.push({ 'Date':'', 'Particular':'TOTAL', 'Amount': Number(totalExpenses.toFixed(2)), 'Remarks':'', 'Payment Status':'' });
+          rows.push({ 'Date':'', 'Particular':'PENDING PAYMENT', 'Amount': Number(totalPending.toFixed(2)), 'Remarks':'', 'Payment Status':'' });
+
+          const ws = XLSX.utils.json_to_sheet(rows);
+          ws['!cols'] = [{wch:14},{wch:26},{wch:14},{wch:28},{wch:14}];
+          const range = XLSX.utils.decode_range(ws['!ref']);
+          const currencyFmt = '"₹"#,##,##0.00';
+          for(let r = range.s.r + 1; r <= range.e.r; r++){
+            const amtRef = XLSX.utils.encode_cell({ r, c: 2 });
+            if(ws[amtRef] && ws[amtRef].t === 'n') ws[amtRef].z = currencyFmt;
+          }
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Expenses');
+          const filename = 'Expenses_Report_' + new Date().toISOString().slice(0,10) + '.xlsx';
           XLSX.writeFile(wb, filename);
         }catch(err){
           alert('Export failed: ' + err.message);
@@ -5887,6 +6832,16 @@
         savePurchases();
       }
 
+      if(set.has('spoilage') || wantsAll){
+        spoilage = [];
+        saveSpoilage();
+      }
+
+      if(set.has('expenses') || wantsAll){
+        expenses = [];
+        saveExpenses();
+      }
+
       if(set.has('deletedOrders') || wantsAll){
         deletionLog = [];
         saveDeletionLog();
@@ -5915,6 +6870,8 @@
       render();
       renderPayments();
       renderPurchases();
+      renderSpoilage();
+      renderExpenses();
       renderKOTHistory();
       renderDeleteHistory();
       renderEditHistory();
@@ -6268,35 +7225,28 @@
       return 'Pending';
     }
 
-    // Same shape as the Excel export's row mapping (kept separately so the
-    // Excel generator below is never touched), used to drive the on-screen
-    // sortable/searchable table.
-    //
-    // Amount Received / Balance Receivable: uses the real per-order value
-    // recorded via Update Payment when present (Pending tickets now track
-    // this explicitly). Falls back to the old status-based estimate for
-    // orders that never went through that flow — a Completed booking is
-    // treated as fully paid, anything else as not yet collected.
+    // Same subtotal-fallback logic as the Excel export below (kept
+    // separately so that generator is never touched), used to drive the
+    // on-screen sortable/searchable Monthly Report table. Column order
+    // matches the required report format: Date, Invoice No., Guest Name,
+    // Subtotal, GST, Parcel Charges, Discount, Total Amount, Sales Type,
+    // Status, Payment Method, Waiter.
     function mapOrderToReportRow(o){
       const subtotal = o.subtotal != null ? o.subtotal : (Number(o.amount || 0) - (o.gst || 0) - (o.parcelCharge || 0));
       const totalAmount = Number(o.amount || 0);
-      const commissionAmt = totalAmount * 0.10;
-      const netAmt = totalAmount - commissionAmt;
-      const amountReceived = o.amountReceived != null ? Number(o.amountReceived) : (o.status === 'Completed' ? totalAmount : 0);
-      const balanceReceivable = totalAmount - amountReceived;
       return {
         date: o.date,
-        id: o.id,
+        invoiceNo: o.invoiceNumber || '',
         customer: o.customer || '',
-        tariff: Number(subtotal.toFixed(2)),
-        gstAmt: Number((o.gst || 0).toFixed(2)),
+        subtotal: Number(subtotal.toFixed(2)),
+        gst: Number((o.gst || 0).toFixed(2)),
+        parcel: Number((o.parcelCharge || 0).toFixed(2)),
+        discount: Number((o.discount || 0).toFixed(2)),
         total: Number(totalAmount.toFixed(2)),
-        commission: Number(commissionAmt.toFixed(2)),
-        amountReceived: Number(amountReceived.toFixed(2)),
-        balanceReceivable: Number(balanceReceivable.toFixed(2)),
-        net: Number(netAmt.toFixed(2)),
-        paymentStatus: paymentStatusFor(o.status),
-        bookingStatus: o.status
+        salesType: o.salesType || '',
+        status: o.status || '',
+        paymentMethod: o.paymentMethod || '',
+        waiter: o.waiter || ''
       };
     }
 
@@ -6326,7 +7276,7 @@
       const { col, dir } = currentSort;
       const mult = dir === 'asc' ? 1 : -1;
       const dateCols = ['date'];
-      const numCols = ['tariff', 'gstAmt', 'total', 'commission', 'amountReceived', 'balanceReceivable', 'net'];
+      const numCols = ['subtotal', 'gst', 'parcel', 'discount', 'total'];
       return rows.slice().sort((a, b) => {
         let av = a[col], bv = b[col];
         if(dateCols.includes(col)){
@@ -6352,8 +7302,8 @@
       if(query){
         rows = rows.filter(r =>
           r.customer.toLowerCase().includes(query) ||
-          r.id.toLowerCase().includes(query) ||
-          r.bookingStatus.toLowerCase().includes(query)
+          r.invoiceNo.toLowerCase().includes(query) ||
+          r.status.toLowerCase().includes(query)
         );
       }
 
@@ -6362,17 +7312,17 @@
       tableBody.innerHTML = rows.map(r => `
         <tr>
           <td>${new Date(r.date).toLocaleDateString()}</td>
-          <td>${escapeHtml(r.id)}</td>
+          <td>${escapeHtml(r.invoiceNo || '—')}</td>
           <td>${escapeHtml(r.customer)}</td>
-          <td class="num">${fmtMoney(r.tariff)}</td>
-          <td class="num">${fmtMoney(r.gstAmt)}</td>
+          <td class="num">${fmtMoney(r.subtotal)}</td>
+          <td class="num">${fmtMoney(r.gst)}</td>
+          <td class="num">${fmtMoney(r.parcel)}</td>
+          <td class="num">${fmtMoney(r.discount)}</td>
           <td class="num">${fmtMoney(r.total)}</td>
-          <td class="num">${fmtMoney(r.commission)}</td>
-          <td class="num">${fmtMoney(r.amountReceived)}</td>
-          <td class="num">${fmtMoney(r.balanceReceivable)}</td>
-          <td class="num">${fmtMoney(r.net)}</td>
-          <td>${escapeHtml(r.paymentStatus)}</td>
-          <td>${escapeHtml(r.bookingStatus)}</td>
+          <td>${escapeHtml(r.salesType)}</td>
+          <td>${escapeHtml(r.status)}</td>
+          <td>${escapeHtml(r.paymentMethod)}</td>
+          <td>${escapeHtml(r.waiter)}</td>
         </tr>`).join('');
 
       tableEmpty.style.display = rows.length ? 'none' : 'block';
@@ -6381,14 +7331,12 @@
       const sum = (key) => rows.reduce((s, r) => s + (Number(r[key]) || 0), 0);
       tableFoot.innerHTML = rows.length ? `
         <td colspan="3" style="text-align:right;">Totals</td>
-        <td class="num">${fmtMoney(sum('tariff'))}</td>
-        <td class="num">${fmtMoney(sum('gstAmt'))}</td>
+        <td class="num">${fmtMoney(sum('subtotal'))}</td>
+        <td class="num">${fmtMoney(sum('gst'))}</td>
+        <td class="num">${fmtMoney(sum('parcel'))}</td>
+        <td class="num">${fmtMoney(sum('discount'))}</td>
         <td class="num">${fmtMoney(sum('total'))}</td>
-        <td class="num">${fmtMoney(sum('commission'))}</td>
-        <td class="num">${fmtMoney(sum('amountReceived'))}</td>
-        <td class="num">${fmtMoney(sum('balanceReceivable'))}</td>
-        <td class="num">${fmtMoney(sum('net'))}</td>
-        <td></td><td></td>` : '';
+        <td></td><td></td><td></td><td></td>` : '';
 
       // Sort-direction indicator on the active column header
       reportTable.querySelectorAll('thead th').forEach(th => {
@@ -6420,14 +7368,29 @@
     // filters. Only touches this panel's DOM — never calls the dashboard's
     // main render(), keeping this fast regardless of order-book size.
     function generateReport(){
-      currentPeriodOrders = orders.filter(inSelectedPeriod);
+      const periodOrders = orders.filter(inSelectedPeriod);
+      // Monthly Report is a financial report: only Completed, invoiced
+      // tickets contribute to its figures and table rows — Pending, Order
+      // Taken, In Progress, Cancelled, and Refunded tickets are excluded,
+      // same rule as the rest of the Financial Summary / Owner Dashboard.
+      currentPeriodOrders = periodOrders.filter(o => o.status === 'Completed' && o.invoiceNumber);
 
       const totalBookings = currentPeriodOrders.length;
       const totalRevenue = currentPeriodOrders.reduce((s,o) => s + Number(o.amount || 0), 0);
       const gstCollected = currentPeriodOrders.reduce((s,o) => s + Number(o.gst || 0), 0);
+      const parcelCharges = currentPeriodOrders.reduce((s,o) => s + Number(o.parcelCharge || 0), 0);
+      // Total Revenue (Including GST) = Total Revenue (Excluding GST) + GST
+      // Collected + Parcel Charges — so "Excluding GST" nets out Parcel too,
+      // since Parcel is shown as its own card. `totalRevenue` (each order's
+      // saved amount) already includes GST and Parcel, so this stays in
+      // sync automatically whenever bookings, GST, or parcel charges change.
+      const revenueExclGst = totalRevenue - gstCollected - parcelCharges;
       const commission = totalRevenue * 0.10;
       const netRevenue = totalRevenue - commission;
-      const pendingPayments = currentPeriodOrders.filter(o => o.status === 'Pending').reduce((s,o) => s + Number(o.amount || 0), 0);
+      // Pending Payments stays an operational figure — the value of tickets
+      // still Pending within the period — and is intentionally NOT limited
+      // to completed/invoiced orders, since it's tracking the opposite thing.
+      const pendingPayments = periodOrders.filter(o => o.status === 'Pending').reduce((s,o) => s + Number(o.amount || 0), 0);
 
       const defaultsNow = currentMonthValue();
       const isCurrentPeriod = !fromInput.value && !toInput.value &&
@@ -6438,10 +7401,11 @@
 
       reportTitle.textContent = 'Report — ' + periodLabel();
       $('#r-bookings').textContent = totalBookings;
-      $('#r-orders').textContent = totalBookings;
+      $('#r-revenue-excl').textContent = fmtMoney(revenueExclGst);
+      $('#r-gst').textContent = fmtMoney(gstCollected);
+      $('#r-parcel').textContent = fmtMoney(parcelCharges);
       $('#r-revenue').textContent = fmtMoney(totalRevenue);
       $('#r-today').textContent = todayRevenueForPeriod;
-      $('#r-gst').textContent = fmtMoney(gstCollected);
       $('#r-commission').textContent = fmtMoney(commission);
       $('#r-net').textContent = fmtMoney(netRevenue);
       $('#r-pending').textContent = fmtMoney(pendingPayments);
@@ -6480,7 +7444,7 @@
           'Net Revenue','Payment Status','Booking Status'];
         const currencyCols = ['Basic','GST Amount','Total Amount','Commission (10%)','Amount Received','Balance Receivable','Net Revenue'];
 
-        const rows = orders.map(o => {
+        const rows = orders.filter(o => o.status === 'Completed' && o.invoiceNumber).map(o => {
           const subtotal = o.subtotal != null ? o.subtotal : (Number(o.amount || 0) - (o.gst || 0) - (o.parcelCharge || 0));
           const totalAmount = Number(o.amount || 0);
           const commissionAmt = totalAmount * 0.10;
@@ -6575,6 +7539,8 @@
   loadEditHistory();
   loadDeletionLog();
   loadPurchases();
+  loadSpoilage();
+  loadExpenses();
   loadOrders();
   if(window.generateOwnerReport) window.generateOwnerReport();
 })();
