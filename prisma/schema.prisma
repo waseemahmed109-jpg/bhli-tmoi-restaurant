@@ -22,6 +22,7 @@ model Order {
   waiterId       String
   waiter         User        @relation(fields: [waiterId], references: [id])
   customerName   String?
+  pax            Int?
   table          String?
   salesType      String?     @default("DineIn")
   subtotal       Float?

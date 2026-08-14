@@ -2635,6 +2635,10 @@ body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inl
       <input type="text" id="f-customer" autocomplete="off" required>
     </div>
     <div class="field">
+      <label for="f-pax">No. of Pax (Person)</label>
+      <input type="number" id="f-pax" autocomplete="off" min="1">
+    </div>
+    <div class="field">
       <label for="f-table" id="f-table-label">Table Number</label>
       <select id="f-table" required>
         <option value="" disabled selected>Select...</option>
@@ -4034,6 +4038,7 @@ body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inl
     invLine('Date', genDateStr);
     invLine('Time', genTimeStr);
     invLine('Table No.', order.table || '-');
+    if (order.pax) invLine('Pax', order.pax);
     invLine('Waiter', order.waiter || '-');
     invLine('Payment Mode', order.paymentMethod || 'Not recorded');
     invHighlightedLine('Payment Status', paymentStatus);
@@ -4252,12 +4257,15 @@ body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inl
       y += 5;
     };
 
+    const pad2 = (n) => String(n).padStart(2, '0');
     const orderDate = new Date(order.date);
-    const orderDateTime = orderDate.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) +
-      ' ' + orderDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    const orderDateStr = pad2(orderDate.getDate()) + '-' + pad2(orderDate.getMonth() + 1) + '-' + orderDate.getFullYear();
+    const orderTimeStr = orderDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: true});
     kotLine('KOT No.', order.kotNumber || '-');
-    kotLine('Date & Time', orderDateTime);
+    kotLine('Date', orderDateStr);
+    kotLine('Time', orderTimeStr);
     kotLine('Table No.', order.table || '-');
+    if (order.pax) kotLine('Pax', order.pax);
     kotLine('Order Taken By', order.waiter || '-');
 
     y += 1;
@@ -5162,6 +5170,8 @@ body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inl
   function resetForm(){
     form.reset();
     $('#f-id').value = '';
+    $('#f-customer').value = '';
+    $('#f-pax').value = '';
     editingId = null;
     editSnapshot = null;
     document.body.classList.remove('editing-ticket');
@@ -5189,6 +5199,8 @@ body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inl
   form.addEventListener('submit', function(e){
     e.preventDefault();
     const customer = $('#f-customer').value.trim();
+    const paxValue = $('#f-pax').value;
+    const pax = paxValue ? parseInt(paxValue, 10) : null;
     const table = getTableValue();
     const salesType = $('#f-salestype').value;
     const itemsList = collectItemRows();
@@ -5242,14 +5254,14 @@ body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inl
     if(editingId){
       const idx = orders.findIndex(o=>o.id===editingId);
       if(idx > -1){
-        orders[idx] = { ...orders[idx], customer, table, salesType, itemsList, items, subtotal, gst, parcelCharge, discount, amount, amountINR: fmtMoney(amount), currency: 'INR', status, waiter, chef, paymentMethod, remarks, guestSignature };
+        orders[idx] = { ...orders[idx], customer, pax, table, salesType, itemsList, items, subtotal, gst, parcelCharge, discount, amount, amountINR: fmtMoney(amount), currency: 'INR', status, waiter, chef, paymentMethod, remarks, guestSignature };
         savedOrder = orders[idx];
       }
     } else {
       const newOrder = {
         id: genId(),
         date: new Date().toISOString(),
-        customer, table, salesType, itemsList, items, subtotal, gst, parcelCharge, discount, amount, amountINR: fmtMoney(amount), currency: 'INR', status, waiter, chef, paymentMethod, remarks, guestSignature
+        customer, pax, table, salesType, itemsList, items, subtotal, gst, parcelCharge, discount, amount, amountINR: fmtMoney(amount), currency: 'INR', status, waiter, chef, paymentMethod, remarks, guestSignature
       };
       orders.push(newOrder);
       savedOrder = newOrder;
@@ -5456,6 +5468,7 @@ body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inl
       populateTableOptions();
       $('#f-id').value = o.id;
       $('#f-customer').value = o.customer;
+      $('#f-pax').value = o.pax || '';
       $('#f-table').value = o.table;
       $('#f-table-text').value = o.table;
       $('#f-salestype').value = o.salesType || 'DineIn';
