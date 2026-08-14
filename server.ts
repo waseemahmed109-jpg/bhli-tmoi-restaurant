@@ -104,6 +104,15 @@ app.post('/api/sync', authMiddleware, async (c) => {
   return c.json({ success: true })
 })
 
+// ── Public routes ───────────────────────────────────────────
+app.get('/api/staff', async (c) => {
+  const staff = await prisma.user.findMany({
+    where: { role: { equals: 'staff', mode: 'insensitive' } },
+    select: { username: true }
+  })
+  return c.json(staff)
+})
+
 // ── Orders ──────────────────────────────────────────────────
 app.get('/api/orders', authMiddleware, async (c) => {
   const orders = await prisma.order.findMany({ include: { items: true }, orderBy: { createdAt: 'desc' } })

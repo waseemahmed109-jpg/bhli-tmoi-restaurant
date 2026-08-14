@@ -3019,7 +3019,15 @@ body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inl
   var ADMIN_USERS = { 'admin': '' };
   var MANAGER_USERS = { 'manager': '' };
   var OWNER_USERS = { 'owner': '' };
-  var STAFF_USERS = { 'Bonomoli': '', 'Masum': '', 'Nargis': '' };
+  var STAFF_USERS = {};
+  
+  // Fetch dynamic staff roster from the database
+  fetch('/api/staff').then(r => r.json()).then(staff => {
+    staff.forEach(s => { STAFF_USERS[s.username] = ''; });
+    if(typeof populateLoginStaffSelect === 'function') populateLoginStaffSelect();
+    if(window.populateWaiterOptions) window.populateWaiterOptions();
+  }).catch(e => console.error('Failed to load staff list', e));
+
   // Exposed for the order-form script block below (this file uses two
   // separate top-level IIFEs), so the Waiter dropdown always reflects the
   // live staff roster without duplicating it in two places.
