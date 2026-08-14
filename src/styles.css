@@ -1,5 +1,4 @@
-
-  :root{
+:root{
     --charcoal-950:#171512;
     --charcoal-800:#221f1b;
     --charcoal-700:#2c2822;
@@ -1845,3 +1844,51 @@
     margin-top:4px;
     padding-top:8px;
   }
+
+
+/* ───────────────────────────────────────────── */
+
+
+/* WebSocket connection indicator */
+.ws-status { position:fixed; bottom:12px; right:12px; z-index:9999; display:flex; align-items:center; gap:6px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; letter-spacing:0.3px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:all 0.3s ease; pointer-events:none; }
+.ws-status.connected { background:rgba(34,197,94,0.15); color:#22c55e; border:1px solid rgba(34,197,94,0.3); }
+.ws-status.disconnected { background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); }
+.ws-dot { width:7px; height:7px; border-radius:50%; }
+.ws-status.connected .ws-dot { background:#22c55e; box-shadow:0 0 6px #22c55e; }
+.ws-status.disconnected .ws-dot { background:#ef4444; box-shadow:0 0 6px #ef4444; }
+
+/* Admin User Management Panel */
+.admin-panel-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:8000; backdrop-filter:blur(3px); }
+.admin-panel-overlay.open { display:flex; align-items:center; justify-content:center; }
+.admin-panel { background:var(--surface,#1e1e2e); border-radius:16px; width:min(680px,92vw); max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
+.admin-panel-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 12px; border-bottom:1px solid rgba(255,255,255,0.08); }
+.admin-panel-header h2 { font-size:18px; font-weight:700; color:var(--text,#e4e4e7); margin:0; }
+.admin-panel-close { background:none; border:none; color:var(--text-muted,#a1a1aa); font-size:22px; cursor:pointer; padding:4px 8px; border-radius:6px; }
+.admin-panel-close:hover { background:rgba(255,255,255,0.08); color:var(--text,#e4e4e7); }
+.admin-panel-body { padding:16px 24px 24px; }
+.admin-user-table { width:100%; border-collapse:collapse; margin-top:12px; }
+.admin-user-table th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted,#a1a1aa); padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.08); }
+.admin-user-table td { padding:10px; font-size:13px; color:var(--text,#e4e4e7); border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+.admin-user-table tr:hover td { background:rgba(255,255,255,0.03); }
+.admin-btn { padding:5px 12px; border-radius:6px; font-size:11px; font-weight:600; border:none; cursor:pointer; transition:all 0.15s; }
+.admin-btn-danger { background:rgba(239,68,68,0.15); color:#ef4444; }
+.admin-btn-danger:hover { background:rgba(239,68,68,0.25); }
+.admin-btn-primary { background:rgba(59,130,246,0.15); color:#3b82f6; }
+.admin-btn-primary:hover { background:rgba(59,130,246,0.25); }
+.admin-btn-success { background:rgba(34,197,94,0.15); color:#22c55e; }
+.admin-btn-success:hover { background:rgba(34,197,94,0.25); }
+.admin-add-form { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; align-items:flex-end; }
+.admin-add-form .afield { display:flex; flex-direction:column; gap:3px; }
+.admin-add-form .afield label { font-size:10px; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-muted,#a1a1aa); }
+.admin-add-form .afield input, .admin-add-form .afield select { padding:7px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.05); color:var(--text,#e4e4e7); font-size:13px; }
+.admin-actions { display:flex; gap:4px; }
+.admin-msg { padding:8px 12px; border-radius:8px; font-size:12px; margin-bottom:12px; display:none; }
+.admin-msg.error { display:block; background:rgba(239,68,68,0.12); color:#ef4444; border:1px solid rgba(239,68,68,0.2); }
+.admin-msg.success { display:block; background:rgba(34,197,94,0.12); color:#22c55e; border:1px solid rgba(34,197,94,0.2); }
+
+
+/* ───────────────────────────────────────────── */
+
+
+#admin-users-btn { display:none; }
+body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inline-flex; }

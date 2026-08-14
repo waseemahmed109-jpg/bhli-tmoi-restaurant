@@ -1,16 +1,22 @@
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt'
+import { PrismaPg } from '@prisma/adapter-pg'
+import pg from 'pg'
+import bcrypt from 'bcryptjs'
+import dotenv from 'dotenv'
 
-const prisma = new PrismaClient()
+dotenv.config()
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('Seeding database...')
 
   const users = [
-    { username: 'admin', password: 'admin9986', role: 'admin' },
-    { username: 'manager', password: 'manager456', role: 'manager' },
+    { username: 'admin', password: 'SecureAdmin2026!', role: 'admin' },
+    { username: 'manager', password: 'MgrAccess#789', role: 'manager' },
     { username: 'owner', password: 'owner7866', role: 'owner' },
-    { username: 'Bonomoli', password: 'bonomoli123', role: 'staff' },
+    { username: 'staff', password: 'Staff@Pos456', role: 'staff' },
     { username: 'Masum', password: 'masum222', role: 'staff' },
     { username: 'Nargis', password: 'nargis333', role: 'staff' },
   ]
@@ -19,7 +25,7 @@ async function main() {
     const hashedPassword = await bcrypt.hash(user.password, 10)
     await prisma.user.upsert({
       where: { username: user.username },
-      update: {},
+      update: { password: hashedPassword },
       create: {
         username: user.username,
         password: hashedPassword,

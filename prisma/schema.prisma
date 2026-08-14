@@ -59,3 +59,90 @@ model MenuItem {
   updatedAt DateTime @updatedAt
 }
 
+model AppState {
+  key   String @id
+  value String
+  updatedAt DateTime @updatedAt
+}
+
+model Purchase {
+  id            Int      @id @default(autoincrement())
+  date          String
+  supplier      String?
+  item          String
+  quantity      Float    @default(0)
+  unit          String?
+  rate          Float    @default(0)
+  amount        Float    @default(0)
+  paymentMode   String?
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Spoilage {
+  id            Int      @id @default(autoincrement())
+  date          String
+  item          String
+  quantity      Float    @default(0)
+  unit          String?
+  amount        Float    @default(0)
+  reason        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Expense {
+  id            Int      @id @default(autoincrement())
+  date          String
+  particular    String
+  amount        Float    @default(0)
+  status        String   @default("Pending")
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  orderId       String
+  amount        Float    @default(0)
+  method        String?
+  date          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model DeletionLog {
+  id            Int      @id @default(autoincrement())
+  ticketId      String
+  reason        String
+  deletedBy     String
+  deletedAt     String
+  orderData     String?  // JSON snapshot of the deleted order
+  createdAt     DateTime @default(now())
+}
+
+model EditHistory {
+  id            Int      @id @default(autoincrement())
+  ticketId      String
+  changes       String   // JSON string of changes
+  editedBy      String
+  editedAt      String
+  createdAt     DateTime @default(now())
+}
+
+model InvoiceCounter {
+  id            String   @id @default("default")
+  counter       Int      @default(0)
+  updatedAt     DateTime @updatedAt
+}
+
+model ItemMasterUpload {
+  id            Int      @id @default(autoincrement())
+  filename      String
+  itemCount     Int
+  uploadedBy    String?
+  uploadedAt    String
+  createdAt     DateTime @default(now())
+}
