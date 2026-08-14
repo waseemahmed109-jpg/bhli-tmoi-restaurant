@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  role      String   // "admin", "manager", "owner", "staff"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Order {
+  id             Int         @id @default(autoincrement())
+  status         String      @default("OPEN")
+  waiterId       String
+  waiter         User        @relation(fields: [waiterId], references: [id])
+  customerName   String?
+  table          String?
+  salesType      String?     @default("DineIn")
+  subtotal       Float?
+  gst            Float?
+  parcelCharge   Float?
+  discount       Float?
+  totalAmount    Float       @default(0)
+  chef           String?
+  paymentMethod  String?     @default("Cash")
+  remarks        String?
+  guestSignature String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  items          OrderItem[]
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  name      String
+  quantity  Int      @default(1)
+  rate      Float
+  amount    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MenuItem {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  category  String?
+  rate      Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

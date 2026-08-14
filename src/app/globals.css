@@ -1,0 +1,1847 @@
+
+  :root{
+    --charcoal-950:#171512;
+    --charcoal-800:#221f1b;
+    --charcoal-700:#2c2822;
+    --paper:#ffffff;
+    --paper-dim:#ececec;
+    --box-white:#ffffff;
+    --box-dim:#eef0f2;
+    --ink:#2b2620;
+    --copper:#b8703f;
+    --copper-light:#d69463;
+    --sage:#7c9473;
+    --amber:#d3a24c;
+    --rust:#b5524b;
+    --line:rgba(241,233,218,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at 20% -10%, #123a6b 0%, transparent 55%),
+      #071c38;
+    color:var(--paper);
+    font-family:'IBM Plex Mono', monospace;
+    min-height:100vh;
+  }
+  .display{font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.04em;}
+
+  /* ---------- Header ---------- */
+  header{
+    padding:36px 6vw 28px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    border-bottom:1px solid var(--line);
+  }
+  header .brand h1{
+    font-size:clamp(28px,4vw,42px);
+    font-weight:700;
+    margin:0;
+    color:var(--paper);
+  }
+  header .brand h1 span{color:var(--copper-light);}
+  header .brand p{
+    margin:4px 0 0;
+    font-size:12.5px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:#a89a80;
+  }
+  /* ---------- Staff login header photo ----------
+     A small "stamp size" headshot shown at the left of the header, but ONLY
+     for the matching Staff login (set via body[data-staff-user] in the
+     login script). Height is pinned to the brand title's line height and
+     width follows automatically from the image's own aspect ratio, so the
+     photo scales with the header without ever being stretched or cropped. */
+  header .brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  header .brand .brand-photo{
+    display:none;
+    height:clamp(48px,6vw,64px);
+    width:auto;
+    max-width:64px;
+    border-radius:6px;
+    object-fit:contain;
+    border:1px solid var(--line);
+    background:#0e2544;
+    flex:none;
+  }
+  body.role-staff[data-staff-user="Bonomoli"] header .brand .brand-photo.photo-bonomoli{ display:block; }
+  body.role-staff[data-staff-user="Masum"] header .brand .brand-photo.photo-masum{ display:block; }
+  /* Owner & Admin see the Arabic line, positioned on the right side of the
+     header (paired above the clock/session badge in .header-right); Staff
+     & Manager keep the original English subtitle under the restaurant name,
+     unchanged. Font size matches the "BHLI-TMOI RESTAURANT" h1 exactly so
+     the two sit visually balanced at opposite ends of the header. */
+  header .header-right{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:10px;
+  }
+  header .header-right p.header-subtitle-arabic{
+    display:none;
+    margin:0;
+    text-align:right;
+    text-transform:none;
+    letter-spacing:0;
+    font-family:'Traditional Arabic','Scheherazade New','Noto Naskh Arabic',serif;
+    font-size:clamp(28px,4vw,42px);
+    font-weight:700;
+    line-height:1.15;
+    color:#ffffff;
+  }
+  body.role-owner header .brand p.header-subtitle-default,
+  body.role-admin header .brand p.header-subtitle-default{ display:none; }
+  body.role-owner header .header-right p.header-subtitle-arabic,
+  body.role-admin header .header-right p.header-subtitle-arabic{ display:block; }
+  #clock{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:#a89a80;
+    text-align:right;
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+  }
+  #clock strong{color:var(--paper); font-size:15px; letter-spacing:0.05em;}
+
+  /* ---------- Metrics: tally stubs ---------- */
+  .metrics{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+    padding:24px 6vw 8px;
+  }
+  @media (min-width:640px){
+    .metrics{grid-template-columns:repeat(auto-fit, minmax(180px,1fr));}
+  }
+  .stub{
+    position:relative;
+    background:var(--box-white);
+    border:1px solid rgba(7,28,56,0.12);
+    border-radius:4px;
+    padding:14px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+  }
+  .stub::before{
+    content:'';
+    width:14px;height:14px;
+    border-radius:50%;
+    background:var(--box-dim);
+    border:1px solid rgba(7,28,56,0.15);
+    flex:none;
+  }
+  .stub .num{
+    font-family:'Oswald',sans-serif;
+    font-size:22px;
+    font-weight:600;
+    color:var(--copper);
+    line-height:1;
+  }
+  .stub .lbl{
+    font-size:9.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:#0a2647;
+    margin-top:4px;
+  }
+  /* Order Taken (Staff panel) - golden background, dark text for readability */
+  .stub.stub-order-taken{
+    background:#f0c14b;
+    border-color:rgba(184,112,63,0.45);
+  }
+  .stub.stub-order-taken::before{
+    background:#fff3d0;
+    border-color:rgba(184,112,63,0.4);
+  }
+  .stub.stub-order-taken .num{ color:#3a2a0a; }
+  .stub.stub-order-taken .lbl{ color:#4a3510; }
+
+  /* ---------- Waiter board ---------- */
+  .boards-row{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
+    gap:16px;
+    margin:20px 6vw 0;
+  }
+  .waiter-board{
+    background:var(--box-white);
+    border:1px solid rgba(7,28,56,0.12);
+    border-radius:4px;
+    padding:16px 18px 18px;
+  }
+  .waiter-board h3{
+    font-family:'Oswald',sans-serif;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:#5b5140;
+    margin:0 0 12px;
+  }
+  .waiter-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .waiter-chip{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--box-dim);
+    border:1px solid rgba(7,28,56,0.1);
+    border-radius:3px;
+    padding:8px 12px;
+  }
+  .waiter-chip .w-name{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink);
+  }
+  .waiter-chip .w-count{
+    font-family:'Oswald',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    color:var(--copper-light);
+    background:rgba(184,112,63,0.15);
+    border-radius:10px;
+    padding:1px 8px;
+    line-height:1.5;
+  }
+  .waiter-board .waiter-empty{
+    font-size:12px;
+    color:#8b7f66;
+    font-style:italic;
+  }
+
+  /* ---------- Layout ---------- */
+  main{
+    padding:28px 6vw 60px;
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:28px;
+    align-items:start;
+  }
+  @media (max-width:880px){
+    main{grid-template-columns:1fr;}
+  }
+
+  /* Admin's default view is ticket history only — the New Ticket entry pad
+     is hidden. It reappears automatically while Admin is actively editing
+     an existing ticket (the same form is reused for that), then hides again
+     once the edit is saved or cancelled. */
+  body.role-admin .pad{ display:none !important; }
+  body.role-admin main{ grid-template-columns:1fr; }
+  body.role-admin.editing-ticket .pad{ display:block !important; }
+  body.role-admin.editing-ticket main{ grid-template-columns:340px 1fr; }
+  @media (max-width:880px){
+    body.role-admin.editing-ticket main{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- Order pad (form) ---------- */
+  .pad{
+    background:
+      repeating-linear-gradient(#faf7f0 0px, #faf7f0 27px, #f0ebdd 28px);
+    color:var(--ink);
+    border-radius:2px;
+    padding:22px 22px 26px;
+    position:sticky;
+    top:20px;
+    filter:drop-shadow(0 12px 24px rgba(0,0,0,0.35));
+  }
+  /* The pad is sticky on desktop (hovers alongside the taller ticket rail
+     column as you scroll). Once the layout collapses to a single stacked
+     column on mobile/tablet, that same sticky behaviour has nothing
+     appropriate to hover next to — it just pins the pad over whatever
+     scrolls beneath it, which is exactly the "floating and overlapping"
+     Generated Ticket panel problem. Switching to normal static flow here
+     means the pad (Ticket Box) appears first, the Generated Ticket panel
+     follows immediately below it, and the page simply scrolls together
+     with nothing floating or overlapping. Placed after the base .pad rule
+     above (same specificity) so this is guaranteed to win the cascade.  */
+  @media (max-width:880px){
+    .pad{
+      position:static;
+      top:auto;
+    }
+  }
+  .pad h2{
+    font-family:'Oswald',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    margin:0 0 14px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--ink);
+  }
+  .field{margin-bottom:12px;}
+  .item-rows{display:flex; flex-direction:column; gap:6px; margin-bottom:8px;}
+  .item-row-header{
+    display:flex; gap:6px; align-items:center;
+    font-size:9.5px; letter-spacing:0.08em; text-transform:uppercase; color:#8b7f66;
+    padding:0 2px;
+  }
+  .item-row-header .h-name{flex:1; min-width:0;}
+  .item-row-header .h-qty{width:40px; flex:none; text-align:center;}
+  .item-row-header .h-rate{width:58px; flex:none; text-align:center;}
+  .item-row-header .h-amount{width:64px; flex:none; text-align:center;}
+  .item-row-header .h-spacer{width:20px; flex:none;}
+  .item-row{display:flex; align-items:center; gap:4px;}
+  .item-name-wrap{ position:relative; flex:1; min-width:0; }
+  .item-row .item-name{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:1px dashed #8b7f66;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--ink);
+    padding:4px 2px;
+    outline:none;
+    text-overflow:ellipsis;
+  }
+  /* On narrow phones, the fixed-width Qty/Rate/Amount columns left too
+     little room for the item name (e.g. "Paneer Tikka" was getting cut to
+     "Paneer Tik"). Below 480px, the name gets its own full-width line, and
+     Qty/Rate/Amount/Remove move to a second line beneath it instead. */
+  @media (max-width:480px){
+    .item-row-header{ display:none; }
+    .item-row{
+      flex-wrap:wrap;
+      row-gap:2px;
+      padding-bottom:8px;
+      margin-bottom:2px;
+      border-bottom:1px dashed rgba(139,127,102,0.3);
+    }
+    .item-row .item-name-wrap{ flex:1 1 100%; order:1; }
+    .item-row .item-qty{ order:2; }
+    .item-row .item-rate{ order:3; }
+    .item-row .item-amount{ order:4; flex:1 1 auto; text-align:right; }
+    .item-row .item-row-remove{ order:5; }
+  }
+  .item-row .item-name:focus{border-bottom:1px solid var(--copper);}
+  .item-name-suggestions{
+    display:none;
+    position:absolute;
+    top:100%; left:0; right:0;
+    z-index:20;
+    background:#fdfcfa;
+    border:1px solid rgba(7,28,56,0.2);
+    border-radius:0 0 4px 4px;
+    max-height:170px;
+    overflow-y:auto;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+  }
+  .item-suggestion{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:7px 9px;
+    font-size:12.5px;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .item-suggestion:hover, .item-suggestion.active{ background:rgba(184,112,63,0.14); }
+  .item-suggestion-rate{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    color:var(--sage);
+    flex:none;
+  }
+  .item-name-empty{
+    padding:7px 9px;
+    font-size:11.5px;
+    color:#8b7f66;
+    font-style:italic;
+  }
+  .item-row .item-qty{
+    width:40px; flex:none; text-align:center;
+    background:transparent;
+    border:none;
+    border-bottom:1px dashed #8b7f66;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--ink);
+    padding:4px 2px;
+    outline:none;
+  }
+  .item-row .item-qty:focus{border-bottom:1px solid var(--copper);}
+  .item-row .item-rate{
+    width:58px; flex:none; text-align:center;
+    background:transparent;
+    border:none;
+    border-bottom:1px dashed #8b7f66;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--ink);
+    padding:4px 2px;
+    outline:none;
+  }
+  .item-row .item-rate:focus{border-bottom:1px solid var(--copper);}
+  .item-row .item-amount{
+    width:64px; flex:none; text-align:right;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--ink);
+    padding:4px 2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .item-row .item-row-remove{
+    flex:none;
+    width:22px; height:22px;
+    border:none;
+    background:transparent;
+    color:#a35b52;
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    padding:0;
+  }
+  .item-row .item-row-remove:hover{color:var(--rust);}
+  .btn-add-item{
+    background:transparent;
+    color:var(--copper);
+    border:1px dashed var(--copper);
+    padding:6px 12px;
+    font-size:11px;
+  }
+  .btn-add-item:hover{background:rgba(184,112,63,0.1);}
+  .field label{
+    display:block;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:#5b5140;
+    margin-bottom:3px;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:1px dashed #8b7f66;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--ink);
+    padding:4px 2px;
+    outline:none;
+  }
+  .currency-field{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    border-bottom:1px dashed #8b7f66;
+  }
+  .currency-field .currency-prefix{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:#5b5140;
+  }
+  .currency-field input{
+    border-bottom:none;
+    padding-left:0;
+  }
+  .currency-field:focus-within{border-bottom:1px solid var(--copper);}
+  .currency-field input[readonly]{color:#5b5140; cursor:default;}
+  .totals-block{
+    font-size:12px;
+    color:#5b5140;
+    margin-bottom:6px;
+  }
+  .totals-block .totals-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:2px 2px;
+  }
+  .totals-block .totals-input{display:flex; align-items:center; gap:3px;}
+  .totals-block .totals-input .currency-prefix{font-size:12px; color:#5b5140;}
+  .totals-block .totals-input input{
+    width:60px;
+    text-align:right;
+    background:transparent;
+    border:none;
+    border-bottom:1px dashed #8b7f66;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink);
+    padding:2px;
+    outline:none;
+  }
+  .totals-block .totals-input input:focus{border-bottom:1px solid var(--copper);}
+  .field textarea{resize:vertical; min-height:44px;}
+  .field input:focus, .field select:focus, .field textarea:focus{border-bottom:1px solid var(--copper);}
+  .pad-actions{display:flex; gap:8px; margin-top:16px;}
+
+  button{
+    font-family:'Oswald',sans-serif;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    font-size:12px;
+    font-weight:600;
+    border:none;
+    border-radius:3px;
+    padding:10px 16px;
+    cursor:pointer;
+    transition:transform .12s ease, filter .12s ease;
+  }
+  button:active{transform:scale(0.97);}
+  button:focus-visible{outline:2px solid var(--copper-light); outline-offset:2px;}
+  .btn-primary{background:#0a2647; color:#ffffff; flex:1;}
+  .btn-primary:hover{filter:brightness(1.1);}
+  .btn-ghost{background:transparent; color:#5b5140; border:1px solid #8b7f66;}
+  .btn-ghost:hover{background:rgba(0,0,0,0.06);}
+  .btn-stamp{
+    background:transparent;
+    border:2px solid var(--copper-light);
+    color:var(--copper-light);
+    border-radius:999px;
+    padding:9px 18px;
+  }
+  .btn-stamp:hover{background:rgba(214,148,99,0.12);}
+  .btn-stamp.danger{
+    border-color:var(--rust);
+    color:var(--rust);
+  }
+  .btn-stamp.danger:hover{ background:rgba(181,82,75,0.14); }
+
+  /* ---------- Rail controls ---------- */
+  .rail-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .rail-toolbar input[type=search]{
+    background:var(--box-white);
+    border:1px solid rgba(7,28,56,0.15);
+    border-radius:4px;
+    padding:9px 12px;
+    color:var(--ink);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    min-width:220px;
+  }
+  .rail-toolbar input[type=search]:focus{outline:none; border-color:var(--copper);}
+  .save-indicator{font-size:11px; color:#7c9473; letter-spacing:0.08em; text-transform:uppercase; opacity:0; transition:opacity .3s;}
+  .save-indicator.show{opacity:1;}
+
+  /* ---------- Ticket rail ---------- */
+  .rail{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(250px,1fr));
+    gap:22px;
+  }
+  .ticket-wrap{filter:drop-shadow(0 8px 16px rgba(0,0,0,0.4));}
+  .ticket{
+    background:var(--paper);
+    color:var(--ink);
+    clip-path:polygon(
+      0% 8%,5% 0%,10% 8%,15% 0%,20% 8%,25% 0%,30% 8%,35% 0%,40% 8%,45% 0%,
+      50% 8%,55% 0%,60% 8%,65% 0%,70% 8%,75% 0%,80% 8%,85% 0%,90% 8%,95% 0%,
+      100% 8%,100% 100%,0% 100%
+    );
+    padding:26px 18px 18px;
+  }
+  .ticket .row1{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:1px dashed #8b7f66; padding-bottom:8px; margin-bottom:8px;
+  }
+  .ticket .oid{font-size:11.5px; font-weight:600; letter-spacing:0.03em;}
+  .ticket .odate{font-size:10.5px; color:#5b5140;}
+  .ticket .meta{font-size:12px; margin:3px 0;}
+  .ticket .meta b{color:#5b5140; font-weight:600;}
+  .ticket .items{font-size:12px; margin:8px 0; line-height:1.5; min-height:18px;}
+  .ticket .item-line{display:flex; justify-content:space-between; gap:8px;}
+  .ticket .item-line .iq{color:#5b5140;}
+  .ticket .item-line .iamt{color:#5b5140; flex:none;}
+  .ticket .total{
+    font-family:'Oswald',sans-serif;
+    font-size:20px; font-weight:600;
+    margin-top:8px;
+  }
+  /* Status-tinted ticket cards — lets you scan the sidebar at a glance and
+     see which tickets are done vs. still open. */
+  .ticket.completed{
+    background:linear-gradient(rgba(151,183,127,0.22), rgba(151,183,127,0.22)), var(--paper);
+    box-shadow:inset 6px 0 0 var(--sage);
+  }
+  .ticket.pending{
+    background:linear-gradient(rgba(212,163,79,0.18), rgba(212,163,79,0.18)), var(--paper);
+    box-shadow:inset 6px 0 0 var(--amber);
+  }
+  .ticket.ordertaken{
+    box-shadow:inset 6px 0 0 var(--copper-light);
+  }
+  .ticket.inprogress{
+    background:linear-gradient(rgba(211,162,76,0.16), rgba(211,162,76,0.16)), var(--paper);
+    box-shadow:inset 6px 0 0 var(--amber);
+  }
+  .ticket.cancelled, .ticket.refunded{
+    background:linear-gradient(rgba(179,79,63,0.14), rgba(179,79,63,0.14)), var(--paper);
+    box-shadow:inset 6px 0 0 var(--rust);
+  }
+  .badge{
+    display:inline-block;
+    font-family:'Oswald',sans-serif;
+    font-size:10px; letter-spacing:0.1em; text-transform:uppercase;
+    padding:3px 8px; border-radius:2px; color:#1c1712; font-weight:600;
+  }
+  .badge.completed{background:var(--sage);}
+  .badge.pending{background:var(--amber);}
+  .badge.ordertaken{background:var(--copper-light);}
+  .badge.inprogress{background:var(--amber);}
+  .badge.cancelled, .badge.refunded{background:var(--rust); color:#f1e9da;}
+  .ticket-actions{
+    display:flex; gap:6px; margin-top:14px;
+    border-top:1px dashed #8b7f66; padding-top:10px;
+  }
+  .icon-btn{
+    background:transparent; border:1px solid #8b7f66; color:#5b5140;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.05em;
+    text-transform:uppercase; padding:6px 9px; border-radius:2px; flex:1;
+  }
+  .icon-btn:hover{background:rgba(0,0,0,0.06);}
+  .icon-btn.danger{color:var(--rust); border-color:var(--rust);}
+  .icon-btn.danger:hover{background:rgba(181,82,75,0.1);}
+
+  /* ---------- KOT (Kitchen Order Ticket) section on active tickets ---------- */
+  .kot-section{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed #8b7f66;
+  }
+  .kot-btn{
+    width:100%;
+    background:rgba(124,148,115,0.14);
+    border-color:var(--sage);
+    color:#3f4f38;
+    font-weight:600;
+  }
+  .kot-btn:hover{ background:rgba(124,148,115,0.24); }
+  .kot-badge{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:10.5px;
+    color:var(--sage);
+    font-weight:600;
+    letter-spacing:0.02em;
+    margin-bottom:8px;
+  }
+  .kot-badge .kot-dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--sage); flex:none;
+  }
+  .kot-actions{ display:flex; gap:6px; flex-wrap:wrap; }
+  .kot-actions .icon-btn{ flex:1; min-width:78px; }
+
+  /* ---------- Order-level quick actions (Edit / Complete Order) ---------- */
+  .order-actions-row{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed #8b7f66;
+  }
+  .order-actions-row .icon-btn{ flex:1; min-width:78px; }
+  .btn-complete-order{
+    background:rgba(124,148,115,0.14);
+    border-color:var(--sage);
+    color:#3f4f38;
+    font-weight:600;
+  }
+  .btn-complete-order:hover{ background:rgba(124,148,115,0.24); }
+
+  /* ---------- Pending ticket: Update Payment action ---------- */
+  .pending-payment-row{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed #8b7f66;
+  }
+  .btn-update-payment{
+    width:100%;
+    background:rgba(211,162,76,0.16);
+    border-color:var(--amber);
+    color:#5a4413;
+    font-weight:600;
+  }
+  .btn-update-payment:hover{ background:rgba(211,162,76,0.28); }
+
+  /* ---------- Completed ticket: collapsed summary row ---------- */
+  .ticket-summary-row{
+    grid-column:1/-1;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:4px;
+    padding:12px 16px;
+    cursor:pointer;
+    box-shadow:inset 4px 0 0 var(--sage);
+    transition:background .12s ease;
+  }
+  .ticket-summary-row:hover, .ticket-summary-row:focus-visible{
+    background:#f4f1e9;
+    outline:none;
+  }
+  .ticket-summary-row .ts-date{
+    font-size:12.5px;
+    color:#5b5140;
+    min-width:92px;
+  }
+  .ticket-summary-row .ts-salestype{
+    font-family:'Oswald',sans-serif;
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--sage);
+    font-weight:600;
+    flex:1;
+  }
+  .ticket-summary-row .ts-amount{
+    font-family:'Oswald',sans-serif;
+    font-size:16px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .ticket-summary-row .ts-hint{
+    font-size:10.5px;
+    color:#8b7f66;
+    letter-spacing:0.04em;
+    white-space:nowrap;
+  }
+
+  .empty{
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:#7c7262;
+    border:1px dashed var(--line);
+    border-radius:6px;
+  }
+  .empty .display{font-size:16px; color:#a89a80; margin-bottom:6px;}
+
+  footer{
+    padding:18px 6vw 40px;
+    color:#6b6252;
+    font-size:11px;
+    letter-spacing:0.05em;
+  }
+
+  .visually-hidden{
+    position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);
+  }
+
+  /* ---------- New-ticket pop-up alerts ---------- */
+  .alerts-container{
+    position:fixed;
+    top:16px;
+    right:16px;
+    left:16px;
+    z-index:1000;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:10px;
+    pointer-events:none;
+  }
+  .alert-card{
+    pointer-events:auto;
+    width:min(340px, 100%);
+    background:var(--copper);
+    color:#1c1712;
+    border-radius:6px;
+    padding:12px 34px 12px 14px;
+    position:relative;
+    filter:drop-shadow(0 10px 20px rgba(0,0,0,0.45));
+    animation:alert-in 0.28s cubic-bezier(.2,.9,.3,1.3);
+  }
+  .alert-card.leaving{ animation:alert-out 0.25s ease forwards; }
+  @keyframes alert-in{
+    from{ transform:translateY(-16px); opacity:0; }
+    to{ transform:translateY(0); opacity:1; }
+  }
+  @keyframes alert-out{
+    to{ transform:translateX(24px); opacity:0; }
+  }
+  .alert-head{
+    font-family:'Oswald',sans-serif;
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+  .alert-body{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    line-height:1.5;
+  }
+  .alert-amount{
+    font-family:'Oswald',sans-serif;
+    font-size:17px;
+    font-weight:600;
+    margin-top:2px;
+  }
+  .alert-dismiss{
+    position:absolute;
+    top:8px;
+    right:8px;
+    background:transparent;
+    border:none;
+    color:#1c1712;
+    font-size:18px;
+    line-height:1;
+    padding:4px;
+    cursor:pointer;
+  }
+  /* Post-login welcome message (Staff & Manager) — sage green so it reads
+     as a friendly greeting rather than an urgent copper new-ticket alert. */
+  .alert-card.alert-welcome{
+    background:var(--sage);
+    color:#f4faf1;
+  }
+  .alert-card.alert-welcome .alert-dismiss{ color:#f4faf1; }
+  @media (prefers-reduced-motion: reduce){
+    .alert-card, .alert-card.leaving{ animation:none; }
+  }
+
+  /* ---------- Login screen ---------- */
+  #login-screen{
+    position:fixed;
+    inset:0;
+    z-index:2000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(ellipse at 20% -10%, #123a6b 0%, transparent 55%),
+      #071c38;
+    padding:24px;
+  }
+  #login-screen.hidden{ display:none; }
+  .login-card{
+    width:min(360px, 100%);
+    background:var(--box-white);
+    color:var(--ink);
+    border-radius:6px;
+    padding:28px 26px 24px;
+    filter:drop-shadow(0 16px 30px rgba(0,0,0,0.45));
+  }
+  .login-card h1{
+    font-family:'Oswald',sans-serif;
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    margin:0 0 2px;
+    color:#0a2647;
+  }
+  .login-card p.login-sub{
+    margin:0 0 20px;
+    font-size:12px;
+    color:#5b5140;
+    letter-spacing:0.04em;
+  }
+  .role-toggle{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .role-toggle button{
+    flex:1 1 calc(50% - 4px);
+    font-family:'Oswald',sans-serif;
+    font-size:11.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:9px 6px;
+    border-radius:4px;
+    border:1px solid rgba(7,28,56,0.2);
+    background:var(--box-dim);
+    color:#0a2647;
+    cursor:pointer;
+  }
+  .role-toggle button.active{
+    background:var(--copper);
+    border-color:var(--copper);
+    color:#fff;
+  }
+  .login-card .field{margin-bottom:12px;}
+  .login-card label{
+    display:block;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#5b5140;
+    margin-bottom:5px;
+  }
+  .login-card input, .login-card select{
+    width:100%;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--ink);
+    padding:9px 10px;
+    border:1px solid rgba(7,28,56,0.25);
+    border-radius:4px;
+    background:#fdfcfa;
+    outline:none;
+  }
+  .login-card input:focus, .login-card select:focus{ border-color:var(--copper); }
+  .login-error{
+    font-size:12px;
+    color:var(--rust);
+    margin:-4px 0 12px;
+    min-height:1em;
+  }
+  .login-card button.btn-login{
+    width:100%;
+    font-family:'Oswald',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:11px;
+    border:none;
+    border-radius:4px;
+    background:#0a2647;
+    color:#fff;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .login-card button.btn-login:hover{ background:#123a6b; }
+  .login-hint{
+    margin-top:16px;
+    font-size:10.5px;
+    color:#8b7f66;
+    line-height:1.5;
+  }
+
+  /* ---------- Session / logout badge ---------- */
+  .session-badge{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:11px;
+    color:#a89a80;
+    letter-spacing:0.04em;
+  }
+  .session-badge .role-pill{
+    font-family:'Oswald',sans-serif;
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:3px 9px;
+    border-radius:10px;
+    background:rgba(184,112,63,0.2);
+    color:var(--copper-light);
+  }
+  .session-badge button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:#a89a80;
+    background:transparent;
+    border:1px solid rgba(241,233,218,0.25);
+    border-radius:4px;
+    padding:5px 10px;
+    cursor:pointer;
+  }
+  .session-badge button:hover{ color:var(--paper); border-color:var(--paper); }
+  .admin-only{ display:none !important; }
+  body.role-admin .admin-only{ display:inline-flex !important; }
+  .can-delete{ display:none !important; }
+  body.role-admin .can-delete{ display:inline-flex !important; }
+  body.role-manager .can-delete{ display:inline-flex !important; }
+  .can-manage-kot{ display:none !important; }
+  body.role-admin .can-manage-kot{ display:inline-flex !important; }
+  body.role-manager .can-manage-kot{ display:inline-flex !important; }
+  .kot-history-block{ display:none !important; }
+  body.role-admin .kot-history-block{ display:block !important; }
+  body.role-manager .kot-history-block{ display:block !important; }
+  .delete-history-block{ display:none !important; }
+  body.role-admin .delete-history-block{ display:block !important; }
+  body.role-manager .delete-history-block{ display:block !important; }
+  body.role-staff .hide-for-staff{ display:none !important; }
+  .staff-only-stub{ display:none !important; }
+  body.role-staff .staff-only-stub{ display:flex !important; }
+  /* Hides specific cards/boards below Order Delete History from Admin &
+     Manager only — the underlying data/render logic is untouched, and
+     Staff's view of these (where applicable) is unaffected. */
+  body.role-admin .hide-for-admin-manager{ display:none !important; }
+  body.role-manager .hide-for-admin-manager{ display:none !important; }
+
+  /* ---------- Owner dashboard ---------- */
+  body.role-owner .operational-view{ display:none !important; }
+  #owner-dashboard{ display:none; }
+  body.role-owner #owner-dashboard{ display:block; }
+
+  .owner-wrap{ padding:28px 6vw 60px; }
+  .owner-heading{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .owner-heading h2{
+    font-family:'Oswald',sans-serif;
+    font-size:16px;
+    font-weight:600;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--paper);
+    margin:0;
+  }
+  .owner-heading p{
+    margin:2px 0 0;
+    font-size:11.5px;
+    color:#a89a80;
+    letter-spacing:0.04em;
+  }
+
+  .owner-row{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:14px;
+    margin-bottom:14px;
+  }
+  @media (min-width:720px){
+    .owner-row.row-1{ grid-template-columns:repeat(4, 1fr); }
+    .owner-row.row-2{ grid-template-columns:repeat(4, 1fr); }
+  }
+  .kpi-card{
+    position:relative;
+    border-radius:8px;
+    padding:18px 18px 16px;
+    background:var(--box-white);
+    border:1px solid rgba(7,28,56,0.1);
+    filter:drop-shadow(0 6px 14px rgba(0,0,0,0.18));
+  }
+  .kpi-card .kpi-lbl{
+    font-family:'Oswald',sans-serif;
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:#5b5140;
+    margin-bottom:8px;
+  }
+  .kpi-card .kpi-val{
+    font-family:'Oswald',sans-serif;
+    font-size:22px;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1.15;
+  }
+  .kpi-card .kpi-sub{
+    margin-top:6px;
+    font-size:10.5px;
+    color:#8b7f66;
+  }
+  /* Total Revenue - premium white, black bold larger */
+  .kpi-card.kpi-premium{
+    background:#ffffff;
+    border:1px solid rgba(7,28,56,0.14);
+    box-shadow:inset 0 0 0 1px rgba(184,112,63,0.15);
+  }
+  .kpi-card.kpi-premium .kpi-val{
+    color:#111;
+    font-weight:700;
+    font-size:30px;
+  }
+  /* GST Collected - yellow bg, red bold value */
+  .kpi-card.kpi-gst{
+    background:#fff4bf;
+    border-color:rgba(211,162,76,0.4);
+  }
+  .kpi-card.kpi-gst .kpi-lbl{ color:#6b5a12; }
+  .kpi-card.kpi-gst .kpi-val{ color:var(--rust); font-weight:700; }
+  /* Commission - orange bg, red bold value */
+  .kpi-card.kpi-commission{
+    background:#f3a860;
+    border-color:rgba(181,82,75,0.35);
+  }
+  .kpi-card.kpi-commission .kpi-lbl{ color:#5a2f0e; }
+  .kpi-card.kpi-commission .kpi-val{ color:var(--rust); font-weight:700; }
+  /* Order Taken - golden background, dark bold value for readability */
+  .kpi-card.kpi-order-taken{
+    background:#f0c14b;
+    border-color:rgba(184,112,63,0.45);
+  }
+  .kpi-card.kpi-order-taken .kpi-lbl{ color:#4a3510; }
+  .kpi-card.kpi-order-taken .kpi-val{ color:#3a2a0a; font-weight:700; }
+  /* Net Revenue - black bold value */
+  .kpi-card.kpi-net .kpi-val{ color:#111; font-weight:700; }
+  /* Total Revenue (Including GST) highlight — green, per Owner Dashboard spec */
+  .kpi-card.kpi-green{
+    background:#dcf5df;
+    border-color:rgba(58,140,74,0.45);
+  }
+  .kpi-card.kpi-green .kpi-lbl{ color:#1f5c2c; }
+  .kpi-card.kpi-green .kpi-val{ color:#1f7a34; font-weight:700; }
+  /* GST highlight — orange, per Owner Dashboard spec */
+  .kpi-card.kpi-orange{
+    background:#f7a94a;
+    border-color:rgba(181,82,75,0.35);
+  }
+  .kpi-card.kpi-orange .kpi-lbl{ color:#5a2f0e; }
+  .kpi-card.kpi-orange .kpi-val{ color:#5a2f0e; font-weight:700; }
+  /* Owner Profit / Loss — sign-dependent colour, set via JS */
+  .kpi-card.kpi-profit{ background:#dcf5df; border-color:rgba(58,140,74,0.45); }
+  .kpi-card.kpi-profit .kpi-lbl{ color:#1f5c2c; }
+  .kpi-card.kpi-profit .kpi-val{ color:#1f7a34; font-weight:700; }
+  .kpi-card.kpi-loss{ background:#fdeceb; border-color:rgba(181,82,75,0.4); }
+  .kpi-card.kpi-loss .kpi-lbl{ color:#7a2318; }
+  .kpi-card.kpi-loss .kpi-val{ color:var(--rust); font-weight:700; }
+  .kpi-card.kpi-neutral{ background:#fff8e1; border-color:rgba(211,162,76,0.45); }
+  .kpi-card.kpi-neutral .kpi-lbl{ color:#6b5a12; }
+  .kpi-card.kpi-neutral .kpi-val{ color:#8a6d1a; font-weight:700; }
+
+  /* ---------- Owner Dashboard: four-column financial layout ---------- */
+  .owner-financial-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px;
+    margin-bottom:18px;
+    align-items:start;
+  }
+  .owner-financial-grid .ofg-col{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  /* Separates ticket-related cards (Total Booking / Today's Revenue /
+     Pending Tickets) from the Pending Payment amount below it, in
+     Column 1 of the Financial Summary (Owner Dashboard + Admin/Manager). */
+  .ofg-divider{
+    border:none;
+    border-top:1px dashed rgba(139,127,102,0.4);
+    margin:0;
+    width:100%;
+  }
+  @media (max-width:980px){
+    .owner-financial-grid{ grid-template-columns:repeat(2, 1fr); }
+  }
+  @media (max-width:620px){
+    .owner-financial-grid{ grid-template-columns:1fr; }
+  }
+  /* Pending Payments - overdue highlight */
+  .kpi-card.kpi-pending.overdue{
+    background:#fdeceb;
+    border-color:var(--rust);
+    box-shadow:0 0 0 1px var(--rust);
+  }
+  .kpi-card.kpi-pending.overdue .kpi-val{ color:var(--rust); }
+  .kpi-card.kpi-pending .kpi-sub.overdue-flag{ color:var(--rust); font-weight:600; }
+
+  /* ---------- Owner report panel ---------- */
+  .owner-panel{
+    background:var(--box-white);
+    color:var(--ink);
+    border-radius:8px;
+    padding:20px 20px 22px;
+    margin-bottom:18px;
+    filter:drop-shadow(0 6px 14px rgba(0,0,0,0.18));
+  }
+  .owner-panel h3{
+    font-family:'Oswald',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:#5b5140;
+    margin:0 0 14px;
+  }
+  .owner-panel-controls{
+    display:flex;
+    align-items:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .owner-panel-controls .field{ margin:0; }
+  .owner-panel-controls label{
+    display:block;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#5b5140;
+    margin-bottom:5px;
+  }
+  .owner-panel-controls input[type="month"]{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13.5px;
+    color:var(--ink);
+    padding:8px 10px;
+    border:1px solid rgba(7,28,56,0.25);
+    border-radius:4px;
+    background:#fdfcfa;
+  }
+  .btn-owner-primary{
+    font-family:'Oswald',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:9px 18px;
+    border:none;
+    border-radius:4px;
+    background:#0a2647;
+    color:#fff;
+    cursor:pointer;
+  }
+  .btn-owner-primary:hover{ background:#123a6b; }
+  .btn-owner-export{
+    font-family:'Oswald',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:9px 18px;
+    border:1px solid var(--sage);
+    border-radius:4px;
+    background:transparent;
+    color:var(--sage);
+    cursor:pointer;
+  }
+  .btn-owner-export:hover{ background:rgba(124,148,115,0.12); }
+
+  .report-result{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px dashed rgba(7,28,56,0.2);
+    display:none;
+  }
+  .report-result.visible{ display:block; }
+  .report-result h4{
+    font-family:'Oswald',sans-serif;
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#0a2647;
+    margin:0 0 10px;
+  }
+  .report-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:8px 20px;
+  }
+  @media (min-width:560px){
+    .report-grid{ grid-template-columns:repeat(3, 1fr); }
+  }
+  .report-row{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    font-size:13px;
+    padding:6px 0;
+    border-bottom:1px dashed rgba(7,28,56,0.12);
+  }
+  .report-row span:first-child{ color:#5b5140; }
+  .report-row span:last-child{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    color:var(--ink);
+  }
+
+  /* ---------- Monthly Report v2: header/actions, filters, cards, table ---------- */
+  .report-panel-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .report-panel-header h3{ margin:0; }
+  .report-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .report-actions .btn-owner-export, .report-actions .btn-owner-primary{ padding:8px 14px; font-size:11px; }
+
+  .report-filters{
+    display:flex;
+    align-items:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+    padding-bottom:16px;
+    margin-bottom:16px;
+    border-bottom:1px dashed rgba(7,28,56,0.15);
+  }
+  .report-filters .field{ margin:0; }
+  .report-filters label{
+    display:block;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#5b5140;
+    margin-bottom:5px;
+  }
+  .report-filters select, .report-filters input[type="date"]{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    padding:7px 9px;
+    border:1px solid rgba(7,28,56,0.25);
+    border-radius:4px;
+    background:#fdfcfa;
+  }
+  .report-filters .field-divider{
+    align-self:center;
+    color:#8b7f66;
+    font-size:11px;
+    padding-bottom:8px;
+  }
+
+  .report-summary-cards{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+    margin-bottom:18px;
+  }
+  @media (min-width:720px){
+    .report-summary-cards{ grid-template-columns:repeat(3, 1fr); }
+  }
+  @media (min-width:980px){
+    .report-summary-cards{ grid-template-columns:repeat(6, 1fr); }
+  }
+  .report-summary-cards .kpi-card{ padding:14px 14px 12px; }
+  .report-summary-cards .kpi-val{ font-size:18px; }
+
+  /* ---------- Purchase Module: 4-card summary row ---------- */
+  .purchase-summary-cards{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+    margin-bottom:18px;
+  }
+  @media (min-width:720px){
+    .purchase-summary-cards{ grid-template-columns:repeat(4, 1fr); }
+  }
+  .purchase-summary-cards .kpi-card{ padding:14px 14px 12px; }
+  .purchase-summary-cards .kpi-val{ font-size:18px; }
+  /* Total Spoilage - warm red tint, distinct from Total Purchase */
+  .kpi-card.kpi-spoilage{
+    background:#fdeceb;
+    border-color:rgba(181,82,75,0.35);
+  }
+  .kpi-card.kpi-spoilage .kpi-lbl{ color:#7a2318; }
+  .kpi-card.kpi-spoilage .kpi-val{ color:var(--rust); font-weight:700; }
+
+  .report-table-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+  .report-table-toolbar input[type="search"]{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    padding:8px 10px;
+    border:1px solid rgba(7,28,56,0.25);
+    border-radius:4px;
+    background:#fdfcfa;
+    min-width:220px;
+    flex:1;
+    max-width:320px;
+  }
+  .report-count{ font-size:11px; color:#8b7f66; white-space:nowrap; }
+
+  .report-table-wrap{
+    max-height:480px;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    border:1px solid rgba(7,28,56,0.12);
+    border-radius:6px;
+  }
+  table.report-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+    min-width:960px;
+  }
+  table.report-table thead th{
+    position:sticky;
+    top:0;
+    z-index:1;
+    text-align:left;
+    font-family:'Oswald',sans-serif;
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:#fff;
+    background:#0a2647;
+    padding:9px 10px;
+    white-space:nowrap;
+    cursor:pointer;
+    user-select:none;
+  }
+  table.report-table thead th:hover{ background:#123a6b; }
+  table.report-table thead th.num, table.report-table td.num{ text-align:right; }
+  table.report-table thead th .sort-arrow{ margin-left:4px; opacity:0.6; font-size:9px; }
+  table.report-table tbody td{
+    padding:7px 10px;
+    border-bottom:1px solid rgba(7,28,56,0.08);
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  table.report-table tbody tr:nth-child(even){ background:#f6f3ea; }
+  table.report-table tbody tr:nth-child(odd){ background:#fdfcfa; }
+  table.report-table tbody tr:hover{ background:#eee8d8; }
+  table.report-table tfoot td{
+    padding:9px 10px;
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    color:var(--ink);
+    background:#f0ebdd;
+    border-top:2px solid rgba(7,28,56,0.2);
+    position:sticky;
+    bottom:0;
+  }
+  .report-table-empty{
+    padding:20px;
+    text-align:center;
+    font-size:12.5px;
+    font-style:italic;
+    color:#8b7f66;
+  }
+
+  /* Print Report: hide everything except the report panel being printed */
+  @media print{
+    body.printing-report > *:not(#app-content){ display:none !important; }
+    body.printing-report #app-content > *:not(#owner-dashboard){ display:none !important; }
+    body.printing-report #owner-dashboard > *:not(.report-panel-print-target){ display:none !important; }
+    body.printing-report .report-panel-print-target{
+      position:absolute; top:0; left:0; width:100%; box-shadow:none; filter:none;
+    }
+    body.printing-report .report-actions,
+    body.printing-report .report-filters,
+    body.printing-report .report-table-toolbar{ display:none !important; }
+    body.printing-report .report-table-wrap{ max-height:none; overflow:visible; border:none; }
+    body.printing-report table.report-table thead th{ position:static; background:#0a2647 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+
+  /* ---------- Admin-only block visibility ---------- */
+  .admin-only-block{ display:none !important; }
+  body.role-admin .admin-only-block{ display:block !important; }
+  .admin-manager-only-block{ display:none !important; }
+  body.role-admin .admin-manager-only-block{ display:block !important; }
+  body.role-manager .admin-manager-only-block{ display:block !important; }
+
+  /* ---------- Admin financial summary panel ---------- */
+  .admin-fin-panel{
+    padding:24px 6vw 4px;
+  }
+  .admin-fin-heading{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .admin-fin-heading h2{
+    font-family:'Oswald',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--paper);
+    margin:0;
+  }
+  /* Amount Received - sage bg, dark green bold value */
+  .kpi-card.kpi-received{
+    background:#e4ecdf;
+    border-color:rgba(124,148,115,0.4);
+  }
+  .kpi-card.kpi-received .kpi-lbl{ color:#3f4f38; }
+  .kpi-card.kpi-received .kpi-val{ color:var(--sage); font-weight:700; }
+  /* Balance Receivable - highlight like a due amount */
+  .kpi-card.kpi-balance{
+    background:#fdeceb;
+    border-color:rgba(181,82,75,0.35);
+  }
+  .kpi-card.kpi-balance .kpi-lbl{ color:#5a2f0e; }
+  .kpi-card.kpi-balance .kpi-val{ color:var(--rust); font-weight:700; }
+
+  /* ---------- Payment history panel & table ---------- */
+  .payment-history-panel{
+    background:var(--box-white);
+    color:var(--ink);
+    border-radius:8px;
+    padding:20px 20px 22px;
+    margin:14px 0 18px;
+    filter:drop-shadow(0 6px 14px rgba(0,0,0,0.18));
+  }
+  .payment-history-heading{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .payment-history-heading h3{
+    font-family:'Oswald',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:#5b5140;
+    margin:0;
+  }
+  .payment-history-table-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .history-month-select{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink);
+    padding:6px 9px;
+    border:1px solid rgba(7,28,56,0.25);
+    border-radius:4px;
+    background:#fdfcfa;
+  }
+  .item-list-mgmt-controls{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .item-list-mgmt-field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .item-list-mgmt-label{
+    font-family:'Oswald',sans-serif;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#5b5140;
+  }
+  .item-list-mgmt-hint{
+    font-size:11px;
+    color:#8b7f66;
+    margin-bottom:4px;
+  }
+  table.payment-history-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+    min-width:640px;
+  }
+  table.payment-history-table th{
+    text-align:left;
+    font-family:'Oswald',sans-serif;
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#8b7f66;
+    padding:6px 8px;
+    border-bottom:2px solid rgba(7,28,56,0.15);
+    white-space:nowrap;
+  }
+  table.payment-history-table td{
+    padding:8px 8px;
+    border-bottom:1px dashed rgba(7,28,56,0.12);
+    color:var(--ink);
+    vertical-align:top;
+  }
+  table.payment-history-table td.p-amount{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    color:var(--sage);
+    white-space:nowrap;
+  }
+  table.payment-history-table td.p-actions{ white-space:nowrap; text-align:right; }
+  table.payment-history-table td.p-actions .icon-btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    background:transparent;
+    border:1px solid rgba(7,28,56,0.2);
+    color:#5b5140;
+    border-radius:3px;
+    padding:4px 8px;
+    margin-left:4px;
+    cursor:pointer;
+  }
+  table.payment-history-table td.p-actions .icon-btn.danger{ color:var(--rust); border-color:rgba(181,82,75,0.4); }
+  table.payment-history-table td.p-actions .icon-btn:hover{ background:rgba(0,0,0,0.05); }
+  /* ---------- Expenses Module: Pending row highlight + banner ---------- */
+  table.payment-history-table tr.expense-row-pending td{
+    background:#fdeceb;
+    color:var(--rust);
+  }
+  table.payment-history-table tr.expense-row-pending td.p-status{
+    font-weight:700;
+  }
+  .expense-pending-banner{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    font-weight:700;
+    color:var(--rust);
+    background:#fdeceb;
+    border:1px solid rgba(181,82,75,0.4);
+    border-radius:6px;
+    padding:6px 12px;
+    white-space:nowrap;
+  }
+  .payment-history-empty{
+    font-size:12.5px;
+    color:#8b7f66;
+    font-style:italic;
+    padding:8px 2px;
+  }
+
+  /* ---------- Payment entry modal ---------- */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(7,10,20,0.68);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:300;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal-card{
+    background:
+      repeating-linear-gradient(#faf7f0 0px, #faf7f0 27px, #f0ebdd 28px);
+    color:var(--ink);
+    border-radius:4px;
+    padding:24px 24px 22px;
+    width:100%;
+    max-width:420px;
+    max-height:90vh;
+    overflow-y:auto;
+    filter:drop-shadow(0 20px 40px rgba(0,0,0,0.55));
+  }
+  .modal-card h2{
+    font-family:'Oswald',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    margin:0 0 16px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--ink);
+  }
+  .optional-tag{
+    font-size:9px;
+    color:#8b7f66;
+    text-transform:none;
+    letter-spacing:0;
+  }
+  .modal-error{
+    font-size:12px;
+    color:var(--rust);
+    margin:2px 0 10px;
+    min-height:1em;
+  }
+
+  /* ---------- Reset / Data Management screen ---------- */
+  .reset-warning-intro{
+    font-size:12px;
+    color:#7a2318;
+    font-weight:600;
+    background:#fdeceb;
+    border:1px solid rgba(181,82,75,0.35);
+    border-radius:4px;
+    padding:9px 11px;
+    margin:-6px 0 16px;
+  }
+  .reset-data-checklist{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    margin-bottom:6px;
+    max-height:340px;
+    overflow-y:auto;
+    border:1px solid rgba(7,28,56,0.12);
+    border-radius:6px;
+    padding:6px 4px;
+  }
+  .reset-check-row{
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    font-size:13px;
+    color:var(--ink);
+    padding:7px 8px;
+    border-radius:4px;
+    cursor:pointer;
+  }
+  .reset-check-row:hover{ background:rgba(7,28,56,0.04); }
+  .reset-check-row input[type="checkbox"]{
+    margin-top:2px;
+    width:15px; height:15px;
+    accent-color:var(--rust);
+    flex:none;
+  }
+  .reset-check-row .optional-tag{
+    display:block;
+    font-size:10px;
+    margin-top:2px;
+    color:#8b7f66;
+  }
+  .reset-delete-btn{
+    background:var(--rust) !important;
+  }
+  .reset-delete-btn:hover{ background:#9c3f34 !important; }
+  .reset-data-success{
+    font-size:12.5px;
+    font-weight:600;
+    color:#1f5c2c;
+    background:#dcf5df;
+    border:1px solid rgba(58,140,74,0.4);
+    border-radius:4px;
+    padding:9px 11px;
+    margin:2px 0 10px;
+  }
+
+  /* ---------- Edit Item List modal ---------- */
+  .item-history-edited-sub{
+    font-size:10px;
+    color:#8b7f66;
+    font-style:italic;
+    margin-top:2px;
+  }
+  .item-edit-hint{
+    font-size:11.5px;
+    color:#8b7f66;
+    margin:-8px 0 12px;
+  }
+  .item-edit-table-wrap{
+    max-height:320px;
+    overflow-y:auto;
+    border:1px solid rgba(7,28,56,0.12);
+    border-radius:6px;
+    margin-bottom:8px;
+  }
+  table.item-edit-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+  }
+  table.item-edit-table th{
+    text-align:left;
+    font-family:'Oswald',sans-serif;
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:#8b7f66;
+    padding:7px 8px;
+    border-bottom:2px solid rgba(7,28,56,0.15);
+    position:sticky;
+    top:0;
+    background:#fdfcfa;
+  }
+  table.item-edit-table td{
+    padding:5px 8px;
+    border-bottom:1px dashed rgba(7,28,56,0.1);
+  }
+  table.item-edit-table td:nth-child(2){ width:110px; }
+  table.item-edit-table td:nth-child(3){ width:36px; text-align:center; }
+  table.item-edit-table .ie-name, table.item-edit-table .ie-rate{
+    width:100%;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    padding:5px 6px;
+    border:1px solid rgba(7,28,56,0.18);
+    border-radius:3px;
+    background:#fff;
+  }
+  table.item-edit-table .ie-remove{
+    background:transparent;
+    border:none;
+    color:var(--rust);
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    padding:2px 6px;
+  }
+  table.item-edit-table .ie-remove:hover{ background:rgba(181,82,75,0.12); border-radius:3px; }
+
+  /* ---------- Ticket detail popup ---------- */
+  .modal-card-wide{ max-width:520px; }
+  .ticket-detail-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:4px 16px;
+    font-size:12.5px;
+    margin-bottom:14px;
+  }
+  .ticket-detail-grid .td-row{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding:5px 0;
+    border-bottom:1px dashed rgba(7,28,56,0.12);
+  }
+  .ticket-detail-grid .td-row span:first-child{
+    color:#8b7f66;
+    font-size:9.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+  }
+  .ticket-detail-grid .td-row span:last-child{ font-weight:600; word-break:break-word; }
+  .ticket-detail-grid .td-row.full{ grid-column:1/-1; }
+  table.ticket-detail-items{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+    margin-bottom:12px;
+  }
+  table.ticket-detail-items th{
+    text-align:left;
+    font-family:'Oswald',sans-serif;
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:#8b7f66;
+    padding:5px 4px;
+    border-bottom:2px solid rgba(7,28,56,0.15);
+  }
+  table.ticket-detail-items td{
+    padding:5px 4px;
+    border-bottom:1px dashed rgba(7,28,56,0.1);
+    color:var(--ink);
+  }
+  table.ticket-detail-items td.num, table.ticket-detail-items th.num{ text-align:right; }
+  .ticket-detail-totals{ font-size:13px; margin-top:6px; }
+  .ticket-detail-totals .tdt-row{
+    display:flex; justify-content:space-between; padding:3px 0;
+  }
+  .ticket-detail-totals .tdt-row.grand{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:16px;
+    border-top:2px solid var(--ink);
+    margin-top:4px;
+    padding-top:8px;
+  }

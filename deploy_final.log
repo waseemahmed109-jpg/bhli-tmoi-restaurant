@@ -1,0 +1,40 @@
+Deploying ./fervent-mendel to tmoi-pos / main / next-tmp
+
+Deploying to production (--prod --yes).
+
+Build settings
+  Build Command     npm run build     · package.json scripts.build
+  Output Directory  .next/standalone  · Next.js output
+
+Building locally...
+Build failed locally.
+
+✗ Built       Next.js build failed (exit code 1):
+> next-tmp@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+/Users/saadibrahimkhan/Documents/antigravity/fervent-mendel/node_modules/next/dist/server/load-components.js:126
+const loadComponents = (0, _tracer.getTracer)().wrap(_constants1.LoadComponentsSpan.loadComponents, loadComponentsImpl);
+                                             ^
+
+TypeError: (0 , _tracer.getTracer) is not a function
+    at Object.<anonymous> (/Users/saadibrahimkhan/Documents/antigravity/fervent-mendel/node_modules/next/dist/server/load-components.js:126:46)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1527:12)
+    at mod.require (/Users/saadibrahimkhan/Documents/antigravity/fervent-mendel/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/Users/saadibrahimkhan/Documents/antigravity/fervent-mendel/node_modules/next/dist/build/utils.js:166:25)
+
+Node.js v22.23.2
+Next.js build worker exited with code: 1 and signal: null
+
+Fix: Inspect the build output above, fix the error, and redeploy.
