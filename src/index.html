@@ -18,9 +18,17 @@
   <form class="login-card" id="login-form" autocomplete="off">
     <h1>BHLI-TMOI Restaurant</h1>
     <p class="login-sub">Sign in to open the order board</p>
+    <div class="role-toggle" id="role-toggle">
+      <button type="button" class="active" data-role="staff">Staff</button>
+      <button type="button" data-role="manager">Manager</button>
+      <button type="button" data-role="admin">Admin</button>
+      <button type="button" data-role="owner">Owner</button>
+    </div>
+    <input type="hidden" id="login-role" value="staff">
     <div class="field" id="login-user-field">
-      <label for="login-user" id="login-user-label">Username</label>
-      <input type="text" id="login-user" autocomplete="username" required>
+      <label for="login-user" id="login-user-label">Staff Username</label>
+      <input type="text" id="login-user" autocomplete="username" required style="display:none;">
+      <select id="login-staff-select" required></select>
     </div>
     <div class="field">
       <label for="login-pass">Password</label>
@@ -28,6 +36,7 @@
     </div>
     <div class="login-error" id="login-error"></div>
     <button type="submit" class="btn-login">Log In</button>
+    <p class="login-hint">Staff can take, edit and print orders. Manager can also delete tickets (a remark is required). Admin gets full access including Excel export. Owner sees a revenue &amp; commission dashboard only.</p>
   </form>
 </div>
 

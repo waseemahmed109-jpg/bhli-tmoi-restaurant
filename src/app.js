@@ -36,10 +36,67 @@
   var loginForm = document.getElementById('login-form');
   var loginUser = document.getElementById('login-user');
   var loginPass = document.getElementById('login-pass');
+  var loginRole = document.getElementById('login-role');
   var loginError = document.getElementById('login-error');
+  var roleToggle = document.getElementById('role-toggle');
   var sessionUserEl = document.getElementById('session-user');
   var sessionRolePill = document.getElementById('session-role-pill');
   var logoutBtn = document.getElementById('logout-btn');
+  var loginUserLabel = document.getElementById('login-user-label');
+  var loginStaffSelect = document.getElementById('login-staff-select');
+
+  // Staff Username dropdown — populated straight from the STAFF_USERS table
+  // above, so adding a new staff account there automatically shows up here
+  // with no other code changes needed.
+  function populateLoginStaffSelect(){
+    var names = Object.keys(STAFF_USERS);
+    loginStaffSelect.innerHTML = names.map(function(n){ return '<option>' + n + '</option>'; }).join('');
+    if(names.length) loginUser.value = names[0];
+  }
+  populateLoginStaffSelect();
+
+  loginStaffSelect.addEventListener('change', function(){
+    loginUser.value = loginStaffSelect.value;
+  });
+
+  // Staff signs in by picking their name from the dropdown (username field
+  // stays in sync under the hood); every other role still types a username.
+  function syncLoginFieldsForRole(role){
+    var isStaff = role === 'staff';
+    loginStaffSelect.style.display = isStaff ? '' : 'none';
+    loginUser.style.display = isStaff ? 'none' : '';
+    loginStaffSelect.required = isStaff;
+    loginUser.required = !isStaff;
+    loginUserLabel.textContent = isStaff ? 'Staff Username' : 'Username';
+    if(isStaff){
+      loginUser.value = loginStaffSelect.value;
+    } else {
+      loginUser.value = '';
+    }
+  }
+  syncLoginFieldsForRole('staff');
+
+  roleToggle.addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-role]');
+    if(!btn) return;
+    Array.from(roleToggle.querySelectorAll('button')).forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    loginRole.value = btn.getAttribute('data-role');
+    loginError.textContent = '';
+    syncLoginFieldsForRole(loginRole.value);
+  });
+
+  function credentialTable(role){
+    if(role === 'admin') return ADMIN_USERS;
+    if(role === 'manager') return MANAGER_USERS;
+    if(role === 'owner') return OWNER_USERS;
+    return STAFF_USERS;
+  }
+
+  function checkCredentials(role, user, pass){
+    var table = credentialTable(role);
+    return Object.prototype.hasOwnProperty.call(table, user) && table[user] === pass;
+  }
 
   function applySession(session){
     document.body.classList.remove('role-admin', 'role-manager', 'role-staff', 'role-owner', 'editing-ticket');
@@ -107,6 +164,7 @@
 
   loginForm.addEventListener('submit', async function(e){
     e.preventDefault();
+    var role = loginRole.value;
     var user = loginUser.value.trim();
     var pass = loginPass.value;
 
@@ -125,7 +183,7 @@
       // Successfully authenticated
       loginError.textContent = '';
       loginForm.reset();
-      await startSession(data.user.role, data.user.username);
+      await startSession(role, user);
     } catch (err) {
       loginError.textContent = 'Network error. Please try again.';
     }
