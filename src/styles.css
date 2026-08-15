@@ -1891,4 +1891,4 @@
 
 
 #admin-users-btn { display:none; }
-body.role-admin #admin-users-btn, body.role-owner #admin-users-btn { display:inline-flex; }
+body.role-admin #admin-users-btn { display:inline-flex; }
