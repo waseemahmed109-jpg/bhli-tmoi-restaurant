@@ -1892,3 +1892,5 @@
 
 #admin-users-btn { display:none; }
 body.role-admin #admin-users-btn { display:inline-flex; }
+.admin-only-action { display: none; }
+body.role-admin .admin-only-action { display: inline-block; }

@@ -1536,6 +1536,7 @@
               <span class="ts-salestype">${escapeHtml(o.salesType || 'DineIn')}</span>
               <span class="ts-amount">${o.amountINR || fmtMoney(o.amount)}</span>
               <span class="ts-hint">View ticket ›</span>
+              <button type="button" class="icon-btn danger admin-only-action" data-delete="${o.id}" style="margin-left: 10px; font-size: 11px;">Delete</button>
             </div>`;
           rail.appendChild(wrap);
           return;
@@ -2311,7 +2312,7 @@
     const shareId = e.target.getAttribute('data-share');
     const viewRow = e.target.closest('[data-view-ticket]');
 
-    if(viewRow){
+    if(viewRow && !delId && !shareId && e.target.tagName !== 'BUTTON'){
       const o = findVisibleOrder(viewRow.getAttribute('data-view-ticket'));
       if(o) openTicketDetailModal(o);
       return;
@@ -2496,11 +2497,6 @@
       }
       const o = findVisibleOrder(delId);
       if(!o) return;
-      if(o.status === 'Completed'){
-        alert('Completed tickets cannot be deleted.');
-        return;
-      }
-
       // A remark is now mandatory for every deletion, regardless of role —
       // it's permanently stored and shown in Order Delete History.
       const remarkInput = prompt('Enter a remark explaining why you are deleting order ' + delId + ' (required):', '');
@@ -4091,6 +4087,7 @@
     const closeBtn = $('#ticket-detail-close-btn');
     const printBtn = $('#ticket-detail-print-btn');
     const reopenBtn = $('#ticket-detail-reopen-btn');
+    const deleteBtn = $('#ticket-detail-delete-btn');
     if(!overlay || !bodyEl) return;
 
     let currentOrder = null;
@@ -4193,6 +4190,32 @@
         scheduleSave();
         closeModal();
         render();
+      });
+    }
+
+    if(deleteBtn){
+      deleteBtn.addEventListener('click', function(){
+        if(!document.body.classList.contains('role-admin')){
+          alert('Only Admin can delete tickets from this view.');
+          return;
+        }
+        if(!currentOrder) return;
+        const remark = prompt('Admin override: Enter reason for deleting completed invoice ' + currentOrder.id + ' (required):');
+        if(!remark || !remark.trim()){
+          alert('Deletion cancelled. A reason is required to delete a completed invoice.');
+          return;
+        }
+        
+        const idx = orders.findIndex(x => x.id === currentOrder.id);
+        if(idx > -1){
+          const deletedOrder = orders[idx];
+          orders.splice(idx, 1);
+          logDeletion(deletedOrder, remark.trim());
+          scheduleSave();
+          render();
+          fetch('/api/orders/' + deletedOrder.id, { method: 'DELETE' }).catch(e => console.error(e));
+          closeModal();
+        }
       });
     }
   })();
